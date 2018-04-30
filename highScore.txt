@@ -1,0 +1,4 @@
+john - 11100
+rick - 4900
+bob - 2700
+gordon - 2400
