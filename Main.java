@@ -717,8 +717,6 @@ class GamePanel extends JPanel
         private Font bigSerif;
         // help the user find out why they're wrong
         private String errorMsg;
-        // characters within the question string where the user did something wrong
-        private int[] arrowPos;
         // allows the user to go the the next level once they got the correct answer
         private JButton nextBtn;
         // how many times the user attempted to solve the problem
@@ -758,9 +756,9 @@ class GamePanel extends JPanel
             nextBtn.setBounds(350, 450, 100, 30);
             nextBtn.setVisible(false);
             
-            // reset can initialize field variables errorMsg, arrowPos
+            // reset can initialize field variables errorMsg
             reset();
-            
+
             // this class will have action, mouse, and key listeners
             addMouseListener(this);
             
@@ -787,15 +785,6 @@ class GamePanel extends JPanel
                 // draw "=" symbol before answerField
                 g.drawString("=", 50+boxPos*24, 180);
             
-            g.setColor(Color.RED);
-            // draw arrows if needed
-            for (int i = 0; i < arrowPos.length; i++)
-            {
-                // draw arrow in 24px intervals starting from 60px
-                if (arrowPos[i] != -1)
-                    g.fillRect(60 + arrowPos[i] * 24, 130, 5, 40);
-            }
-            
             // draw boxes around current operation the user is calculating
             if (boxPos >= 0 && boxSize > 0)
             {
@@ -803,12 +792,10 @@ class GamePanel extends JPanel
             }
         }
         
-        // reset error message and arrows
+        // reset error message and field variables
         public void reset()
         {
-            errorMsg = "Click an operation to start solving!";
-            // shouldn't need more than 4 arrows
-            arrowPos = new int[]{-1, -1, -1, -1};
+            errorMsg = "Click an operation to start solving! Remember to press enter in the text field";
             
             // currect question the user is solving
             question = questions[mainP.level-1];
@@ -820,6 +807,7 @@ class GamePanel extends JPanel
 
             // reset variables to sensible defaults
             tries = 0;
+            
             boxPos = -1;
             boxSize = -1;
 
@@ -827,13 +815,13 @@ class GamePanel extends JPanel
             answer = 1000000;
         }
         
-        // user got question correct, calculate score and allow them to move onto next level
+        // user got entire question correct, calculate score and allow them to move onto next level
         public void correct()
         {
             // calculate score
             mainP.score += (10 - tries) * 100;
             
-            // show next button
+            // show next button to allow user to move onto next level
             nextBtn.setVisible(true);
         }
         
@@ -846,14 +834,14 @@ class GamePanel extends JPanel
             // go the next level
             mainP.level++;
             
-            // debug printout
             System.out.println("nextLevel: " + mainP.nextLevel + ", level: " + mainP.level);
             
             // repaint gamePanel
             refreshAll();
         }
         
-        // user pressed a key within the input text field
+        // enter pressed within answerField, check if user's input is the
+        // same as the correct answer (of the simplified question)
         public void keyPressed(KeyEvent e)
         {
             int keyCode = e.getKeyCode();
@@ -863,16 +851,39 @@ class GamePanel extends JPanel
             {
                 try
                 {
-                    // check the answer by parsing the integer from text field
-                    checkAnswer(Double.parseDouble(answerField.getText()));
+                    // number of tries user attempted to get the correct answer
+                    tries++;
+            
+                    // check if the user is correct by parsing the integer from text field
+                    if (Double.parseDouble(answerField.getText()) == answer)
+                    {
+                        // replace question with simplified question
+                        question = simpQuestion;
+                        System.out.println(simpQuestion);
+                        simpQuestion = "";
+
+                        boxPos = -1;
+                        boxSize = -1;
+                        
+                        // hide answer field until user clicks on another operator
+                        answerField.setVisible(false);
+                        
+                        errorMsg = "Correct!";
+                    } else
+                    {
+                        // user incorrect
+                        errorMsg = "Incorrect!";
+                    }
                     
                     // clear textfield
                     answerField.setText("");
+                    repaint();
                 // might not be an integer, so catch appropriately
                 } catch (NumberFormatException exception)
                 {
-                    // give user helpful message
                     errorMsg = "Please enter a number!";
+                    
+                    answerField.setText("");
                     repaint();
                 }
                 
@@ -881,13 +892,18 @@ class GamePanel extends JPanel
         public void keyReleased(KeyEvent e) {}
         public void keyTyped(KeyEvent e) {}
         
-        // user clicked an operation
+        // user clicked an operation, check if correct operation based on
+        // order of operations, calculate answer of just the operation,
+        // and work out new simplified question
         public void mouseClicked(MouseEvent e)
         {
+            // mouse x and y positions
             int x = e.getX();
             int y = e.getY();
-            // index character user clicked on within string
+            // index of character user clicked on within string
             int index = (x-50)/24;
+            // index of character user clicked on within the inside string
+            int insideIndex = -1;
             // character user clicked on
             char operation = ' ';
             // part of problem in between parenthesis
@@ -905,156 +921,134 @@ class GamePanel extends JPanel
                     if (question.indexOf("(") < index && question.indexOf(")") > index)
                     {
                         // figure out correct order of operations
-                        inside = question.substring(question.indexOf("("), question.indexOf(")"));
+                        inside = question.substring(question.indexOf("(")+1, question.indexOf(")"));
                         System.out.println(inside);
-                        // shift index accordingly
-                        index -= question.indexOf("(");
+                        // calc by subtracting the index of the start of substring
+                        insideIndex = index - question.indexOf("(") + 1;
                         
                         
-                        // do addition/subtraction only if no multiply/divide
-                        if (inside.indexOf("*") == -1 && inside.indexOf("/") == -1)
-                        {
-                            if (inside.indexOf("-") == -1)
-                            {
-                                // add
-                                // ensure user's operation is the correct operation, and draw the box and move the answer field
-                                if (index == inside.indexOf("+")) solveAndDraw('+', index+question.indexOf("("));
-                                // otherwise give helpful error message
-                                else errorMsg = "Do addition first, from left to right";
-                            } else if (inside.indexOf("+") == -1)
-                            {
-                                // subtract
-                                if (index == inside.indexOf("-")) solveAndDraw('+', index+question.indexOf("("));
-                                else errorMsg = "Do subraction first, from left to right";
-                            } else if (inside.indexOf("+") < inside.indexOf("-"))
-                            {
-                                // add
-                                if (index == inside.indexOf("+")) solveAndDraw('+', index+question.indexOf("("));
-                                else errorMsg = "Do addition first, from left to right";
-                            } else {
-                                // subtract
-                                if (index == inside.indexOf("-")) solveAndDraw('+', index+question.indexOf("("));
-                                else errorMsg = "Do subraction first, from left to right";
-                            }
-                        // do multiply/divide whichever comes first
-                        } else if (inside.indexOf("/") == -1)
-                        {
-                            // multiply
-                            System.out.println("index: " + index);
-                            System.out.println("indexof: " + inside.indexOf("*")); 
-                            if (index == inside.indexOf("*")) solveAndDraw('*', index+question.indexOf("("));
-                            else errorMsg = "Do multiplication first, from left to right";
-                        } else if (inside.indexOf("*") == -1)
-                        {
-                            // divide
-                            if (index == inside.indexOf("/")) solveAndDraw('/', index+question.indexOf("("));
-                            else errorMsg = "Do division first, from left to right";
-                        } else if (inside.indexOf("*") < inside.indexOf("/"))
-                        {
-                            // multiply
-                            if (index == inside.indexOf("*")) solveAndDraw('*', index+question.indexOf("("));
-                            else errorMsg = "Do multiplication first, from left to right";
-                        } else
-                        {
-                            // divide
-                            if (index == inside.indexOf("/")) solveAndDraw('/', index+question.indexOf("("));
-                            else errorMsg = "Do division first, from left to right";
-                        }
-                    // operation user selecetd is not in parenthesis
+                        
+                    
                     } else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
                     {
                         errorMsg = "Do operations within first parenthesis first!";
-                    // not within parenthesis
                     } else
                     {
-                        // do in the correct order, similar to above, to be implemented later
+                        // do in the correct order
                     }
                     
                     repaint();
                 }
             }
         }
-        // unused MouseListener methods
         public void mousePressed(MouseEvent e) {}
         public void mouseReleased(MouseEvent e) {}
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
         
-        // checks if the user is correct and provides feedback
-        public void checkAnswer(double input)
+        // checks whether op is the correct operator to calculate in str
+        // set simpQuestion to simplified question, answer to answer of
+        // operation, and errorMsg to correct message
+        // if it is correct, return false
+        // if it is incorrect, return true
+        public boolean orderOfOps(char op, int index, int offset, String str)
         {
-            tries++;
-            
-            // check if the user is correct
-            if (input == answer)
+            // addition/subtraction only if no multiply/divide
+            if (str.indexOf("*") == -1 && str.indexOf("/") == -1)
             {
-                errorMsg = "Correct!";
-                // reset arrows
-                arrowPos = new int[]{-1, -1, -1, -1};
-
-                // replace question with simplified question
-                question = simpQuestion;
-                System.out.println(simpQuestion);
-                simpQuestion = "";
-
-                boxPos = -1;
-                boxSize = -1;
-                
-                if (tries == 2) correct();
-                repaint();
-                // return to prevent later code from running
-                return;
+                if (str.indexOf("-") == -1)
+                {
+                    // add
+                    if (index == str.indexOf("+")) solveAndDraw('+', index+question.indexOf("("));
+                    else errorMsg = "Do addition first, from left to right";
+                } else if (str.indexOf("+") == -1)
+                {
+                    // subtract
+                    if (index == str.indexOf("-")) solveAndDraw('+', index+question.indexOf("("));
+                    else errorMsg = "Do subraction first, from left to right";
+                } else if (str.indexOf("+") < str.indexOf("-"))
+                {
+                    // add
+                    if (index == str.indexOf("+")) solveAndDraw('+', index+question.indexOf("("));
+                    else errorMsg = "Do addition first, from left to right";
+                } else {
+                    // subtract
+                    if (index == str.indexOf("-")) solveAndDraw('+', index+question.indexOf("("));
+                    else errorMsg = "Do subraction first, from left to right";
+                }
+            // do multiply/divide whichever comes first
+            } else if (str.indexOf("/") == -1)
+            {
+                // multiply
+                if (index == str.indexOf("*")) solveAndDraw('*', index+question.indexOf("("));
+                else errorMsg = "Do multiplication first, from left to right";
+            } else if (str.indexOf("*") == -1)
+            {
+                // divide
+                if (index == str.indexOf("/")) solveAndDraw('/', index+question.indexOf("("));
+                else errorMsg = "Do division first, from left to right";
+            } else if (str.indexOf("*") < str.indexOf("/"))
+            {
+                // multiply
+                if (index == str.indexOf("*")) solveAndDraw('*', index+question.indexOf("("));
+                else errorMsg = "Do multiplication first, from left to right";
             } else
             {
-
+                // divide
+                if (index == str.indexOf("/")) solveAndDraw('/', index+question.indexOf("("));
+                else errorMsg = "Do division first, from left to right";
             }
-                
-            
-            // no idea what the error is
-            errorMsg = "Incorrect! Remember, the order of operation is PEMDAS";
-            arrowPos = new int[]{-1, -1, -1, -1};
-            repaint();
         }
         
         // solve a math problem using "js" ScriptEngine
         public double solve(String problem)
         {
-            // create new solver engine
-            ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
-            // answer of problem, should never be 1 million, this is so that I know something is wrong
-            double answer = 1000000;
             
-            try
-            {
-                // try to solve the problem by passing it to the ScriptEngie via eval
-                answer = (double)solver.eval(problem);
-            } catch (ScriptException e)
-            {
-                // print out if a problem isn't formatte correctly
-                System.err.println(problem + " is badly formatted!");
-            }
             
             return answer;
         }
         
         // calculate the correct answer for this operator at index and draw onscreen
-        public void solveAndDraw(char operator, int index)
+        // return whether the operator is correct or not
+        public boolean correctOp(char op, int index, int offset, String str)
         {
             // get the answer
-            answer = solve(question.substring(index-2, index+3));
-
-            // simplified question user will solve next
-            simpQuestion = question.replace(question.substring(index-2, index+3)+"", (int)answer+"");
+            ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
+            // impossible value for answer for debug
+            answer = 1000000;
+            
+            System.out.println("str: " + str);
+            System.out.println("lastindex: " + str.lastIndexOf(' ',index-1));
+            System.out.println("firstindex: " + str.lastIndexOf(' ',index+1));
+            
+            String problem = str.substring(str.lastIndexOf(' ',index-1), str.indexOf(' ',index+1);
+            
+            try
+            {
+                answer = (double)solver.eval(problem);
+            } catch (ScriptException e)
+            {
+                System.err.println(problem + " is badly formatted!");
+            }
+            
+            System.out.println("answer: " + answer);
+            
+            // if not floating point number
+            if (answer - (int)answer == 0)
+                // show as int
+                simpQuestion = question.replace(problem, (int)answer+"");
+            else
+                // show with decimal point
+                simpQuestion = question.replace(problem, answer+"");
             
             // draw the box
             boxPos = index-2;
             boxSize = 5;
             
             // move the answerfield
-            answerField.setBounds(30 + index*24, 150, 100, 50);
+            answerField.setBounds(30 + (index + offset)*24, 150, 100, 50);
             answerField.setVisible(true);
             
-            // debug output
             System.out.println("expected answer: " + answer);
             
             repaint();
