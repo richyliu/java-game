@@ -26,6 +26,8 @@ public class Main
 {
     public static void main(String[] args)
     {
+		System.out.println("\n\n\n");
+		
         Main main = new Main();
         main.run();
     }
@@ -190,7 +192,7 @@ class HomePanel extends JPanel
                 mainP.showCard("highScore");
             // go to reset confirmation on click
             else if (cmd.equals("Reset"))
-                mainP.showCard("reset");
+				mainP.showCard("reset");
             // exit the program on click quit
             else if (cmd.equals("Quit"))
                 System.exit(1);
@@ -203,30 +205,30 @@ class HomePanel extends JPanel
 // reset panel allows the user to confirm resetting the score
 class ResetPanel extends JPanel implements ActionListener
 {
-    // MainPanel reference for using the card layout
+	// MainPanel reference for using the card layout
     private MainPanel mainP;
     
     public ResetPanel(MainPanel mainPIn)
     {
-        mainP = mainPIn;
-        
-        // create labels and confirmation buttons
-        JLabel confirm = new JLabel("Are you sure you want to reset your score?", JLabel.CENTER);
-        // force confirm label to take up a whole line
-        confirm.setPreferredSize(new Dimension(1000, 40));
-        
-        JButton yes = new JButton("Yes");
-        JButton no = new JButton("No");
-        
-        // use this class as an action listener
-        yes.addActionListener(this);
-        no.addActionListener(this);
-        
-        // add to flow layout
-        add(confirm);
-        add(yes);
-        add(no);
-    }
+		mainP = mainPIn;
+		
+		// create labels and confirmation buttons
+		JLabel confirm = new JLabel("Are you sure you want to reset your score?", JLabel.CENTER);
+		// force confirm label to take up a whole line
+		confirm.setPreferredSize(new Dimension(1000, 40));
+		
+		JButton yes = new JButton("Yes");
+		JButton no = new JButton("No");
+		
+		// use this class as an action listener
+		yes.addActionListener(this);
+		no.addActionListener(this);
+		
+		// add to flow layout
+		add(confirm);
+		add(yes);
+		add(no);
+	}
     
     // button clicked
     public void actionPerformed(ActionEvent e)
@@ -236,7 +238,7 @@ class ResetPanel extends JPanel implements ActionListener
         
         // clear the score if user clicked "Yes"
         if (cmd.equals("Yes"))
-            mainP.score = 0;
+			mainP.score = 0;
         
         // go back to home no matter what the user clicked
         mainP.showCard("home");
@@ -336,9 +338,9 @@ class LevelsPanel extends JPanel implements ActionListener
     // contains the actual level selection (#1, #2, #3, etc)
     class GridPanel extends JPanel implements ActionListener
     {
-        // level selection buttons
-        private JButton[] buttons;
-        
+		// level selection buttons
+		private JButton[] buttons;
+		
         public GridPanel ()
         {
             // 4 by 5 grid layout with plenty of space
@@ -350,14 +352,14 @@ class LevelsPanel extends JPanel implements ActionListener
             // initialize each button
             for (int i = 0; i < buttons.length; i++)
             {
-                // use padlock icon if locked
-                if (i < mainP.nextLevel)
-                    // create new button with text of i+1 (since arrays start at 0, but levels start at 1)
-                    buttons[i] = new JButton((i+1) + "");
-                else
-                    // create new button with text of i+1 (since arrays start at 0, but levels start at 1)
-                    buttons[i] = new JButton((i+1) + "", new PadlockIcon());
-                
+				// use padlock icon if locked
+				if (i < mainP.nextLevel)
+					// create new button with text of i+1 (since arrays start at 0, but levels start at 1)
+					buttons[i] = new JButton((i+1) + "");
+				else
+					// create new button with text of i+1 (since arrays start at 0, but levels start at 1)
+					buttons[i] = new JButton((i+1) + "", new PadlockIcon());
+				
                 // use this class as an action listener
                 buttons[i].addActionListener(this);
                 
@@ -369,14 +371,14 @@ class LevelsPanel extends JPanel implements ActionListener
         // refresh button padlock icon according to which levels are unlocked
         public void refresh()
         {
-            // for each button
+			// for each button
             for (int i = 0; i < buttons.length; i++)
             {
-                // remove padlock icon
-                if (i < mainP.nextLevel)
-                    buttons[i].setIcon(null);
+				// remove padlock icon
+				if (i < mainP.nextLevel)
+					buttons[i].setIcon(null);
             }
-        }
+		}
     
         // level button clicked
         public void actionPerformed(ActionEvent e)
@@ -387,14 +389,14 @@ class LevelsPanel extends JPanel implements ActionListener
             // set the level accordingly
             if (lvl <= mainP.nextLevel)
             {
-                mainP.level = lvl;
-                
-                // show the game card
-                mainP.showCard("game");
-                
-                // refresh the game card (since we set a new level)
-                mainP.gamePanel.refreshAll();
-            }
+				mainP.level = lvl;
+				
+				// show the game card
+				mainP.showCard("game");
+				
+				// refresh the game card (since we set a new level)
+				mainP.gamePanel.refreshAll();
+			}
         }
     }
     
@@ -515,23 +517,23 @@ class GamePanel extends JPanel
         
         // load the questions from a file
         File f = new File("questions.txt");
-        // read text into array
-        String allText = "";
+		// read text into array
+		String allText = "";
         // try to get the scanner
         Scanner in;
-        
+		
         try
         {
-            in = new Scanner(f);
-            
-            while(in.hasNext())
-                allText += in.nextLine() + '\n';
-            
-            questions = allText.split("\n");
-        } catch (FileNotFoundException e)
-        {
+			in = new Scanner(f);
+			
+			while(in.hasNext())
+				allText += in.nextLine() + '\n';
+			
+			questions = allText.split("\n");
+		} catch (FileNotFoundException e)
+		{
             System.err.println("\n\nERROR: Cannot find/open questions.txt file to read\n\n\n");
-        }
+		}
         
         // center panel is a card layout
         centerPanel = new CenterPanel(mainP);
@@ -548,17 +550,17 @@ class GamePanel extends JPanel
     // refresh menuPanel and centerPanel according to new level
     public void refreshAll()
     {
-        centerPanel.refresh();
-        menuPanel.progress.repaint();
-        mainP.levelsPanel.gridPanel.refresh();
-    }
+		centerPanel.refresh();
+		menuPanel.progress.repaint();
+		mainP.levelsPanel.gridPanel.refresh();
+	}
     
     // has the back and pause buttons
     class MenuPanel extends JPanel implements ActionListener
     {
-        // progress bar panel reference for repaint
-        private ProgressBarPanel progress;
-        
+		// progress bar panel reference for repaint
+		private ProgressBarPanel progress;
+		
         public MenuPanel()
         {
             // align the menu buttons to the left
@@ -638,10 +640,10 @@ class GamePanel extends JPanel
     // card layout panel for PausePanel, EarlyLevelPanel, and LateLevelPanel
     class CenterPanel extends JPanel
     {
-        // early and later level variables
-        private EarlyLevelPanel early;
-        private LateLevelPanel late;
-        
+		// early and later level variables
+		private EarlyLevelPanel early;
+		private LateLevelPanel late;
+		
         public CenterPanel(MainPanel mainP)
         {
             // cardlayout
@@ -670,13 +672,13 @@ class GamePanel extends JPanel
                 gameCards.show(this, "early");
                 early.reset();
                 early.repaint();
-            }
+			}
             // for later levels, show the "late" card layout
             else
             {
                 gameCards.show(this, "late");
                 late.repaint();
-            }
+			}
         }
     }
     
@@ -707,354 +709,394 @@ class GamePanel extends JPanel
     
     // game view for levels 1-10
     class EarlyLevelPanel extends JPanel implements KeyListener, ActionListener, MouseListener
-    {
-        // main panel reference
-        private MainPanel mainP;
-        // textfield where the user enters their answer
-        private JTextField answerField;
-        // useful fonts for drawing texts
-        private Font bigArial;
-        private Font bigSerif;
-        // help the user find out why they're wrong
-        private String errorMsg;
-        // allows the user to go the the next level once they got the correct answer
-        private JButton nextBtn;
-        // how many times the user attempted to solve the problem
-        private int tries;
-        // currect question the user is solving
-        private String question;
+	{
+		// main panel reference
+		private MainPanel mainP;
+		// textfield where the user enters their answer
+		private JTextField answerField;
+		// useful fonts for drawing texts
+		private Font bigArial;
+		private Font bigSerif;
+		// help the user find out why they're wrong
+		private String errorMsg;
+		// allows the user to go the the next level once they got the correct answer
+		private JButton nextBtn;
+		// how many times the user attempted to solve the problem
+		private int tries;
+		// currect question the user is solving
+		private String question;
         // simplified question the user will solve next 
         private String simpQuestion;
-        // box to draw around the operations the user is currently solving
-        private int boxPos;
-        private int boxSize;
+		// box to draw around the operations the user is currently solving
+		private int boxPos;
+		private int boxSize;
         // answer the user should enter into the text field
         private double answer;
-        
-        public EarlyLevelPanel(MainPanel mainPIn)
-        {
-            mainP = mainPIn;
-            
-            // fonts used for drawing texts
-            bigArial = new Font(Font.MONOSPACED, Font.PLAIN, 40);
-            bigSerif = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
-            
-            // null layout, position answerField manually
-            setLayout(null);
-            
-            // position answer field and use a big font
-            answerField = new JTextField();
-            answerField.addKeyListener(this);
-            answerField.setFont(bigArial);
-            answerField.setBounds(600, 85, 80, 50);
-            // don't show the answer field until the user clicks on an operation
-            answerField.setVisible(false);
-            
-            // position next level button in the bottom of the screen
-            nextBtn = new JButton("Next level");
-            nextBtn.addActionListener(this);
-            nextBtn.setBounds(350, 450, 100, 30);
-            nextBtn.setVisible(false);
-            
-            // reset can initialize field variables errorMsg
-            reset();
-
-            // this class will have action, mouse, and key listeners
-            addMouseListener(this);
-            
-            // add to flow layout
-            add(answerField);
-            add(nextBtn);
-        }
-        
-        // draw the math question
-        public void paintComponent(Graphics g)
-        {
-            super.paintComponent(g);
-            
-            g.setFont(bigArial);
-            // draw the question and an equal sign
-            g.drawString(question, 50, 120);
-            
-            g.setFont(bigSerif);
-            // draw error message
-            g.drawString(errorMsg, 50, 250);
-            
-            // only draw the "=" symbol if boxPos is positive
-            if (boxPos >= 0)
-                // draw "=" symbol before answerField
-                g.drawString("=", 50+boxPos*24, 180);
-            
-            // draw boxes around current operation the user is calculating
-            if (boxPos >= 0 && boxSize > 0)
-            {
-                g.drawRect(48 + boxPos*24, 90, boxSize*24, 40);
-            }
-        }
-        
-        // reset error message and field variables
-        public void reset()
-        {
-            errorMsg = "Click an operation to start solving! Remember to press enter in the text field";
-            
-            // currect question the user is solving
-            question = questions[mainP.level-1];
+		
+		public EarlyLevelPanel(MainPanel mainPIn)
+		{
+			mainP = mainPIn;
+			
+			// fonts used for drawing texts
+			bigArial = new Font(Font.MONOSPACED, Font.PLAIN, 40);
+			bigSerif = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
+			
+			// null layout, position answerField manually
+			setLayout(null);
+			
+			// position answer field and use a big font
+			answerField = new JTextField();
+			answerField.addKeyListener(this);
+			answerField.setFont(bigArial);
+			answerField.setBounds(600, 85, 80, 50);
+			// don't show the answer field until the user clicks on an operation
+			answerField.setVisible(false);
+			
+			// position next level button in the bottom of the screen
+			nextBtn = new JButton("Next level");
+			nextBtn.addActionListener(this);
+			nextBtn.setBounds(350, 450, 100, 30);
+			nextBtn.setVisible(false);
+			
+			// reset can initialize field variables errorMsg
+			reset();
+			
+			addMouseListener(this);
+			
+			add(answerField);
+			add(nextBtn);
+		}
+		
+		// draw the math question
+		public void paintComponent(Graphics g)
+		{
+			super.paintComponent(g);
+			
+			g.setFont(bigArial);
+			// draw the question and an equal sign
+			g.drawString(question, 50, 120);
+			
+			g.setFont(bigSerif);
+			// draw error message
+			g.drawString(errorMsg, 50, 250);
+			
+			if (boxPos >= 0)
+				// draw "=" symbol before answerField
+				g.drawString("=", 50+boxPos*24, 180);
+			
+			g.setColor(Color.RED);
+			// draw boxes around current operation the user is calculating
+			if (boxPos >= 0 && boxSize > 0)
+			{
+				g.drawRect(48 + boxPos*24, 90, boxSize*24, 40);
+			}
+		}
+		
+		// reset error message and field variables
+		public void reset()
+		{
+			errorMsg = "Click an operation to start solving! Remember to press enter in the text field";
+			
+			// currect question the user is solving
+			question = questions[mainP.level-1];
             simpQuestion = "";
-            
-            // hide answer field and next button until usable
-            answerField.setVisible(false);
-            nextBtn.setVisible(false);
-
-            // reset variables to sensible defaults
-            tries = 0;
-            
-            boxPos = -1;
-            boxSize = -1;
+			
+			answerField.setVisible(false);
+			nextBtn.setVisible(false);
+			tries = 0;
+			
+			boxPos = -1;
+			boxSize = -1;
 
             // 1 million should never be the correct answer
             answer = 1000000;
-        }
-        
-        // user got entire question correct, calculate score and allow them to move onto next level
-        public void correct()
-        {
-            // calculate score
-            mainP.score += (10 - tries) * 100;
-            
-            // show next button to allow user to move onto next level
-            nextBtn.setVisible(true);
-        }
-        
-        // next level button clicked
-        public void actionPerformed(ActionEvent e)
-        {
-            // unlock the next level if user has yet to unlock it
-            mainP.nextLevel = Math.max(mainP.nextLevel, mainP.level + 1);
-            
-            // go the next level
-            mainP.level++;
-            
-            System.out.println("nextLevel: " + mainP.nextLevel + ", level: " + mainP.level);
-            
-            // repaint gamePanel
-            refreshAll();
-        }
-        
-        // enter pressed within answerField, check if user's input is the
-        // same as the correct answer (of the simplified question)
-        public void keyPressed(KeyEvent e)
-        {
-            int keyCode = e.getKeyCode();
-            
-            // if enter key is pressed
-            if (keyCode == 10)
-            {
-                try
-                {
-                    // number of tries user attempted to get the correct answer
-                    tries++;
-            
-                    // check if the user is correct by parsing the integer from text field
-                    if (Double.parseDouble(answerField.getText()) == answer)
-                    {
-                        // replace question with simplified question
-                        question = simpQuestion;
-                        System.out.println(simpQuestion);
-                        simpQuestion = "";
+		}
+		
+		// user got entire question correct, calculate score and allow them to move onto next level
+		public void correct()
+		{
+			// calculate score
+			mainP.score += (10 - tries) * 100;
+			
+			// show next button to allow user to move onto next level
+			nextBtn.setVisible(true);
+		}
+		
+		// next level button clicked
+		public void actionPerformed(ActionEvent e)
+		{
+			// unlock the next level if user has yet to unlock it
+			mainP.nextLevel = Math.max(mainP.nextLevel, mainP.level + 1);
+			
+			// go the next level
+			mainP.level++;
+			
+			System.out.println("nextLevel: " + mainP.nextLevel + ", level: " + mainP.level);
+			
+			// repaint gamePanel
+			refreshAll();
+		}
+		
+		// enter pressed within answerField, check if user's input is the
+		// same as the correct answer (of the simplified question)
+		public void keyPressed(KeyEvent e)
+		{
+			int keyCode = e.getKeyCode();
+			
+			// if enter key is pressed
+			if (keyCode == 10)
+			{
+				try
+				{
+					// number of tries user attempted to get the correct answer
+					tries++;
+			
+					// check if the user is correct by parsing the integer from text field
+					if (Double.parseDouble(answerField.getText()) == answer)
+					{
+						// replace question with simplified question
+						question = simpQuestion;
+						System.out.println("simpQuestion: " + simpQuestion);
+						simpQuestion = "";
 
-                        boxPos = -1;
-                        boxSize = -1;
-                        
-                        // hide answer field until user clicks on another operator
-                        answerField.setVisible(false);
-                        
-                        errorMsg = "Correct!";
-                    } else
-                    {
-                        // user incorrect
-                        errorMsg = "Incorrect!";
-                    }
-                    
-                    // clear textfield
-                    answerField.setText("");
-                    repaint();
-                // might not be an integer, so catch appropriately
-                } catch (NumberFormatException exception)
-                {
-                    errorMsg = "Please enter a number!";
-                    
-                    answerField.setText("");
-                    repaint();
-                }
-                
-            }
-        }
-        public void keyReleased(KeyEvent e) {}
-        public void keyTyped(KeyEvent e) {}
-        
-        // user clicked an operation, check if correct operation based on
-        // order of operations, calculate answer of just the operation,
-        // and work out new simplified question
-        public void mouseClicked(MouseEvent e)
-        {
-            // mouse x and y positions
-            int x = e.getX();
-            int y = e.getY();
-            // index of character user clicked on within string
-            int index = (x-50)/24;
-            // index of character user clicked on within the inside string
-            int insideIndex = -1;
-            // character user clicked on
-            char operation = ' ';
-            // part of problem in between parenthesis
-            String inside = "";
-            
-            // player clicked on a character within the string
-            if (y > 95 && y < 120 && index >= 0 && index < question.length())
-            {
-                operation = question.charAt(index);
-                
-                // valid operation
-                if (operation == '+' || operation == '-' || operation == '*' || operation == '/')
-                {
-                    // do operation within parenthesis first
-                    if (question.indexOf("(") < index && question.indexOf(")") > index)
-                    {
-                        // figure out correct order of operations
-                        inside = question.substring(question.indexOf("(")+1, question.indexOf(")"));
-                        System.out.println(inside);
+						boxPos = -1;
+						boxSize = -1;
+						
+						// hide answer field until user clicks on another operator
+						answerField.setVisible(false);
+						
+						errorMsg = "Correct!";
+					} else
+					{
+						// user incorrect
+						errorMsg = "Incorrect!";
+					}
+					
+					// clear textfield
+					answerField.setText("");
+					repaint();
+				// might not be an integer, so catch appropriately
+				} catch (NumberFormatException exception)
+				{
+					errorMsg = "Please enter a number!";
+					
+					answerField.setText("");
+					repaint();
+				}
+				
+			}
+		}
+		public void keyReleased(KeyEvent e) {}
+		public void keyTyped(KeyEvent e) {}
+		
+		// user clicked an operation, check if correct operation based on
+		// order of operations, calculate answer of just the operation,
+		// and work out new simplified question
+		public void mouseClicked(MouseEvent e)
+		{
+			// mouse x and y positions
+			int x = e.getX();
+			int y = e.getY();
+			// index of character user clicked on within string
+			int index = (x-50)/24;
+			// index of character user clicked on within the inside string
+			int insideIndex = -1;
+			// character user clicked on
+			char operation = ' ';
+			// part of problem in between parenthesis
+			String inside = "";
+			
+			// player clicked on a character within the string
+			if (y > 95 && y < 120 && index >= 0 && index < question.length())
+			{
+				operation = question.charAt(index);
+				
+				// valid operation
+				if (operation == '+' || operation == '-' || operation == '*' || operation == '/')
+				{
+					// do operation within parenthesis first
+					if (question.indexOf("(") < index && question.indexOf(")") > index)
+					{
+						// figure out correct order of operations
+						inside = question.substring(question.indexOf("(")+1, question.indexOf(")"));
                         // calc by subtracting the index of the start of substring
-                        insideIndex = index - question.indexOf("(") + 1;
-                        
-                        
-                        
-                    
-                    } else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
-                    {
-                        errorMsg = "Do operations within first parenthesis first!";
-                    } else
-                    {
-                        // do in the correct order
-                    }
-                    
-                    repaint();
-                }
-            }
-        }
-        public void mousePressed(MouseEvent e) {}
-        public void mouseReleased(MouseEvent e) {}
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
-        
-        // checks whether op is the correct operator to calculate in str
-        // set simpQuestion to simplified question, answer to answer of
-        // operation, and errorMsg to correct message
-        // if it is correct, return false
-        // if it is incorrect, return true
-        public boolean orderOfOps(char op, int index, int offset, String str)
-        {
-            // addition/subtraction only if no multiply/divide
-            if (str.indexOf("*") == -1 && str.indexOf("/") == -1)
-            {
-                if (str.indexOf("-") == -1)
-                {
-                    // add
-                    if (index == str.indexOf("+")) solveAndDraw('+', index+question.indexOf("("));
-                    else errorMsg = "Do addition first, from left to right";
-                } else if (str.indexOf("+") == -1)
-                {
-                    // subtract
-                    if (index == str.indexOf("-")) solveAndDraw('+', index+question.indexOf("("));
-                    else errorMsg = "Do subraction first, from left to right";
-                } else if (str.indexOf("+") < str.indexOf("-"))
-                {
-                    // add
-                    if (index == str.indexOf("+")) solveAndDraw('+', index+question.indexOf("("));
-                    else errorMsg = "Do addition first, from left to right";
-                } else {
-                    // subtract
-                    if (index == str.indexOf("-")) solveAndDraw('+', index+question.indexOf("("));
-                    else errorMsg = "Do subraction first, from left to right";
-                }
-            // do multiply/divide whichever comes first
-            } else if (str.indexOf("/") == -1)
-            {
-                // multiply
-                if (index == str.indexOf("*")) solveAndDraw('*', index+question.indexOf("("));
-                else errorMsg = "Do multiplication first, from left to right";
-            } else if (str.indexOf("*") == -1)
-            {
-                // divide
-                if (index == str.indexOf("/")) solveAndDraw('/', index+question.indexOf("("));
-                else errorMsg = "Do division first, from left to right";
-            } else if (str.indexOf("*") < str.indexOf("/"))
-            {
-                // multiply
-                if (index == str.indexOf("*")) solveAndDraw('*', index+question.indexOf("("));
-                else errorMsg = "Do multiplication first, from left to right";
-            } else
-            {
-                // divide
-                if (index == str.indexOf("/")) solveAndDraw('/', index+question.indexOf("("));
-                else errorMsg = "Do division first, from left to right";
-            }
-        }
-        
-        // solve a math problem using "js" ScriptEngine
-        public double solve(String problem)
-        {
-            
-            
-            return answer;
-        }
-        
-        // calculate the correct answer for this operator at index and draw onscreen
-        // return whether the operator is correct or not
-        public boolean correctOp(char op, int index, int offset, String str)
-        {
-            // get the answer
-            ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
-            // impossible value for answer for debug
-            answer = 1000000;
-            
-            System.out.println("str: " + str);
-            System.out.println("lastindex: " + str.lastIndexOf(' ',index-1));
-            System.out.println("firstindex: " + str.lastIndexOf(' ',index+1));
-            
-            String problem = str.substring(str.lastIndexOf(' ',index-1), str.indexOf(' ',index+1);
-            
-            try
-            {
-                answer = (double)solver.eval(problem);
-            } catch (ScriptException e)
-            {
-                System.err.println(problem + " is badly formatted!");
-            }
-            
-            System.out.println("answer: " + answer);
-            
-            // if not floating point number
-            if (answer - (int)answer == 0)
-                // show as int
-                simpQuestion = question.replace(problem, (int)answer+"");
-            else
-                // show with decimal point
-                simpQuestion = question.replace(problem, answer+"");
-            
-            // draw the box
-            boxPos = index-2;
-            boxSize = 5;
-            
-            // move the answerfield
-            answerField.setBounds(30 + (index + offset)*24, 150, 100, 50);
-            answerField.setVisible(true);
-            
-            System.out.println("expected answer: " + answer);
-            
-            repaint();
-        }
-    }
-    
+                        insideIndex = index - question.indexOf("(") - 1;
+						
+						System.out.println("inside: " + inside);
+						System.out.println("insideIndex: " + insideIndex);
+						// inside of parens
+						orderOfOps(operation, insideIndex, inside);
+					} else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
+					{
+						errorMsg = "Do operations within first parenthesis first!";
+					} else
+					{
+						// do in the correct order
+						orderOfOps(operation, index, question);
+					}
+					
+					repaint();
+				}
+			}
+		}
+		public void mousePressed(MouseEvent e) {}
+		public void mouseReleased(MouseEvent e) {}
+		public void mouseEntered(MouseEvent e) {}
+		public void mouseExited(MouseEvent e) {}
+		
+		// checks whether op is the correct operator to calculate in str
+		// set simpQuestion to simplified question, set answer to answer of
+		// operation, and errorMsg to correct message
+		public void orderOfOps(char op, int index, String str)
+		{
+			// addition/subtraction only if no multiply/divide
+			if (str.indexOf("*") == -1 && str.indexOf("/") == -1)
+			{
+				if (str.indexOf("-") == -1)
+				{
+					// add
+					if (index == str.indexOf("+")) correctOp(op, index, str);
+					else errorMsg = "Do addition first, from left to right";
+				} else if (str.indexOf("+") == -1)
+				{
+					// subtract
+					if (index == str.indexOf("-")) correctOp(op, index, str);
+					else errorMsg = "Do subraction first, from left to right";
+				} else if (str.indexOf("+") < str.indexOf("-"))
+				{
+					// add
+					if (index == str.indexOf("+")) correctOp(op, index, str);
+					else errorMsg = "Do addition first, from left to right";
+				} else {
+					// subtract
+					if (index == str.indexOf("-")) correctOp(op, index, str);
+					else errorMsg = "Do subraction first, from left to right";
+				}
+			// do multiply/divide whichever comes first
+			} else if (str.indexOf("/") == -1)
+			{
+				// multiply
+				if (index == str.indexOf("*")) correctOp(op, index, str);
+				else errorMsg = "Do multiplication first, from left to right";
+			} else if (str.indexOf("*") == -1)
+			{
+				// divide
+				if (index == str.indexOf("/")) correctOp(op, index, str);
+				else errorMsg = "Do division first, from left to right";
+			} else if (str.indexOf("*") < str.indexOf("/"))
+			{
+				// multiply
+				if (index == str.indexOf("*")) correctOp(op, index, str);
+				else errorMsg = "Do multiplication first, from left to right";
+			} else
+			{
+				// divide
+				if (index == str.indexOf("/")) correctOp(op, index, str);
+				else errorMsg = "Do division first, from left to right";
+			}
+		}
+		
+		
+		// calculate the correct answer for this operator at index and draw onscreen
+		public void correctOp(char op, int index, String str)
+		{
+			// solve a math problem using "js" ScriptEngine
+			ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
+			// impossible value for answer for debug
+			answer = 1000000;
+			// start and end indicies problem of the current operator
+			// defaults in case start and end are not found
+			int start = 0;
+			int end = str.length();
+			// exit loop var
+			boolean exit = false;
+			// how much index is offset from the original string
+			int offset = question.indexOf(str);
+			
+			// go back to find start
+			for (int i = index-2; i >= 0 && !exit; i--)
+			{
+				// look for anything besides a number or decimal point
+				if (".0123456789".indexOf(str.charAt(i)) == -1)
+				{
+					start = i+1;
+					exit = true;
+				}
+			}
+			// reset exit variable for next loop
+			exit = false;
+			
+			// look forward to find end
+			for (int i = index+2; i < str.length(); i++)
+			{
+				// look for anything besides a number or decimal point
+				if (".0123456789".indexOf(str.charAt(i)) == -1)
+				{
+					end = i;
+					exit = true;
+				}
+			}
+			
+			System.out.println("str: " + str);
+			System.out.println("start: " + start);
+			System.out.println("end: " + end);
+			System.out.println("offset: " + offset);
+			System.out.println("index: " + index);
+			
+			String problem = str.substring(start, end);
+			System.out.println("problem: " + problem);
+			
+			try
+			{
+				answer = (double)solver.eval(problem);
+			} catch (ScriptException e)
+			{
+				System.err.println(problem + " is badly formatted!");
+			}
+			
+			System.out.println("answer: " + answer);
+			
+			StringBuilder sqBuilder = new StringBuilder(question);
+			// only one operator left, remove parenthesis around number if applicable
+			if (str.length() < 9)
+			{
+				System.out.println("removing parenthesis...");
+				// remove beginning parenthesis by looking back from operator
+				sqBuilder.deleteCharAt(sqBuilder.lastIndexOf("(", index+offset));
+				// remove end parenthesis by looking forward from operator
+				sqBuilder.deleteCharAt(sqBuilder.indexOf(")", index+offset-1));
+				// replace simpQuestion with sqBuilder w/o parens
+				simpQuestion = sqBuilder.toString();
+				
+				System.out.println("simpQuestion (2): " + simpQuestion);
+			} else
+			{
+				simpQuestion = question;
+			}
+			
+			// TODO: same problem (2 + 2 + 2 + 2) will not work with this simple replace
+			// if not floating point number
+			if (answer - (int)answer == 0)
+				// show as int
+				simpQuestion = simpQuestion.replace(problem, (int)answer+"");
+			else
+				// show with decimal point
+				simpQuestion = simpQuestion.replace(problem, answer+"");
+			
+			
+			// draw the box
+			boxPos = index+offset-(index-start);
+			boxSize = problem.length();
+			
+			// move the answerfield
+			answerField.setBounds(30 + (index+offset)*24, 150, 100, 50);
+			answerField.setVisible(true);
+			
+			System.out.println("expected answer: " + answer);
+			
+			repaint();
+		}
+	}
     
     // game view for levels 11-20
     class LateLevelPanel extends JPanel
