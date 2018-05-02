@@ -85,7 +85,7 @@ class MainPanel extends JPanel
 
         // initialize with defaults
         level = 1;
-        nextLevel = 1;
+        nextLevel = 2;
         score = 0;
         gamePanel = new GamePanel(this);
         arial = new Font("Arial", Font.PLAIN, 20);
@@ -509,6 +509,9 @@ class GamePanel extends JPanel
     {
         mainP = mainPIn;
 
+        // NOTE: questions must have space between operators and on the outside of parenthesis
+        // questions must not contain 3 digit numbers
+
         // load the questions from a file
         File f = new File("questions.txt");
         // read text into array
@@ -517,10 +520,11 @@ class GamePanel extends JPanel
         Scanner in ;
 
         try
-        { in = new Scanner(f);
+        {
+            in = new Scanner(f);
 
-            while ( in .hasNext())
-                allText += in .nextLine() + '\n';
+            while (in.hasNext())
+                allText += in.nextLine() + '\n';
 
             questions = allText.split("\n");
         }
@@ -859,7 +863,11 @@ class GamePanel extends JPanel
                         // hide answer field until user clicks on another operator
                         answerField.setVisible(false);
 
-                        errorMsg = "Correct!";
+                        errorMsg = "Correct! Click on another operator";
+
+                        // show next level button if the user completed the level (no more operators)
+                        if (question.length() < 3)
+                            nextBtn.setVisible(true);
                     }
                     else
                     {
@@ -903,6 +911,8 @@ class GamePanel extends JPanel
             char operation = ' ';
             // part of problem in between parenthesis
             String inside = "";
+
+            System.out.println("\n\n");
 
             // player clicked on a character within the string
             if (y > 95 && y < 120 && index >= 0 && index < question.length())
@@ -1039,7 +1049,7 @@ class GamePanel extends JPanel
             exit = false;
 
             // look forward to find end
-            for (int i = index + 2; i < str.length(); i++)
+            for (int i = index + 2; i < str.length() && !exit; i++)
             {
                 // look for anything besides a number or decimal point
                 if (".0123456789".indexOf(str.charAt(i)) == -1)
@@ -1071,7 +1081,7 @@ class GamePanel extends JPanel
 
             StringBuilder sqBuilder = new StringBuilder(question);
             // only one operator left, remove parenthesis around number if applicable
-            if (str.length() < 9)
+            if (str.length() < 9 && str.length () < question.length())
             {
                 System.out.println("removing parenthesis...");
                 // remove beginning parenthesis by looking back from operator
@@ -1105,6 +1115,8 @@ class GamePanel extends JPanel
             // move the answerfield
             answerField.setBounds(30 + (index + offset) * 24, 150, 100, 50);
             answerField.setVisible(true);
+            // put focus on answer text field
+            answerField.requestFocusInWindow();
 
             System.out.println("expected answer: " + answer);
 
