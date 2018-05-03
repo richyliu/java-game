@@ -520,11 +520,10 @@ class GamePanel extends JPanel
         Scanner in ;
 
         try
-        {
-            in = new Scanner(f);
+        { in = new Scanner(f);
 
-            while (in.hasNext())
-                allText += in.nextLine() + '\n';
+            while ( in .hasNext())
+                allText += in .nextLine() + '\n';
 
             questions = allText.split("\n");
         }
@@ -723,7 +722,7 @@ class GamePanel extends JPanel
         private int tries;
         // currect question the user is solving
         private String question;
-        // simplified question the user will solve next
+        // simplified question the user will solve next 
         private String simpQuestion;
         // box to draw around the operations the user is currently solving
         private int boxPos;
@@ -865,8 +864,8 @@ class GamePanel extends JPanel
 
                         errorMsg = "Correct! Click on another operator";
 
-                        // show next level button if the user completed the level (no more operators)
-                        if (question.length() < 3)
+                        // show next level button if user completed the level (no more operators)
+                        if (question.length() <= 2)
                             nextBtn.setVisible(true);
                     }
                     else
@@ -1070,7 +1069,7 @@ class GamePanel extends JPanel
 
             try
             {
-                answer = (double)((Integer) solver.eval(problem));
+                answer = (double) solver.eval(problem);
             }
             catch (ScriptException e)
             {
@@ -1081,7 +1080,7 @@ class GamePanel extends JPanel
 
             StringBuilder sqBuilder = new StringBuilder(question);
             // only one operator left, remove parenthesis around number if applicable
-            if (str.length() < 9 && str.length () < question.length())
+            if (str.length() < 9 && str.length() < question.length())
             {
                 System.out.println("removing parenthesis...");
                 // remove beginning parenthesis by looking back from operator
@@ -1115,7 +1114,7 @@ class GamePanel extends JPanel
             // move the answerfield
             answerField.setBounds(30 + (index + offset) * 24, 150, 100, 50);
             answerField.setVisible(true);
-            // put focus on answer text field
+            // put focus on answer field so user can enter in the answer
             answerField.requestFocusInWindow();
 
             System.out.println("expected answer: " + answer);
