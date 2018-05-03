@@ -83,9 +83,11 @@ class MainPanel extends JPanel
         cards = new CardLayout();
         setLayout(cards);
 
-        // initialize with defaults
+        // user starts on level 1
         level = 1;
-        nextLevel = 2;
+        // only level 1 is unlocked
+        nextLevel = 11;
+        // starts at 0 score
         score = 0;
         gamePanel = new GamePanel(this);
         arial = new Font("Arial", Font.PLAIN, 20);
@@ -752,7 +754,7 @@ class GamePanel extends JPanel
             // position next level button in the bottom of the screen
             nextBtn = new JButton("Next level");
             nextBtn.addActionListener(this);
-            nextBtn.setBounds(350, 450, 100, 30);
+            nextBtn.setBounds(350, 450, 130, 30);
             nextBtn.setVisible(false);
 
             // reset can initialize field variables errorMsg
@@ -1069,7 +1071,7 @@ class GamePanel extends JPanel
 
             try
             {
-                answer = (double) solver.eval(problem);
+                answer = (double)((Integer)solver.eval(problem));
             }
             catch (ScriptException e)
             {
@@ -1124,12 +1126,52 @@ class GamePanel extends JPanel
     }
 
     // game view for levels 11-20
-    class LateLevelPanel extends JPanel
+    class LateLevelPanel extends JPanel implements MouseListener, MouseMotionListener
     {
+    	private int x;
+    	private int y;
+    	
         public LateLevelPanel()
         {
-            // currently this panel only has a label, I will add game logic later
-            add(new JLabel("LateLevelPanel"));
+            x = 0;
+            y = 0;
+            
+            setBackground(Color.WHITE);
+            
+            addMouseListener(this);
+            addMouseMotionListener(this);
         }
+        
+        public void paintComponent(Graphics g)
+        {
+        	super.paintComponent(g);
+        	
+        	g.setColor(Color.BLUE);
+        	
+        	g.fillRect(x-20, y-20, 40, 40);
+        }
+
+		public void mouseClicked(MouseEvent e) {
+			
+		}
+
+		public void mouseEntered(MouseEvent e)
+		{}
+		public void mouseExited(MouseEvent e)
+		{}
+		public void mousePressed(MouseEvent e)
+		{}
+		public void mouseReleased(MouseEvent e)
+		{}
+
+		public void mouseDragged(MouseEvent e) {
+			x = e.getX();
+			y = e.getY();
+			
+			repaint();
+		}
+		public void mouseMoved(MouseEvent e) {
+			
+		}
     }
 }
