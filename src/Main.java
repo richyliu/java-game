@@ -86,6 +86,7 @@ class MainPanel extends JPanel
         // user starts on level 1
         level = 1;
         // only level 1 is unlocked
+        // TODO: change this
         nextLevel = 11;
         // starts at 0 score
         score = 0;
@@ -811,16 +812,6 @@ class GamePanel extends JPanel
             answer = 1000000;
         }
 
-        // user got entire question correct, calculate score and allow them to move onto next level
-        public void correct()
-        {
-            // calculate score
-            mainP.score += (10 - tries) * 100;
-
-            // show next button to allow user to move onto next level
-            nextBtn.setVisible(true);
-        }
-
         // next level button clicked
         public void actionPerformed(ActionEvent e)
         {
@@ -841,15 +832,14 @@ class GamePanel extends JPanel
         public void keyPressed(KeyEvent e)
         {
             int keyCode = e.getKeyCode();
+            // points user got (if they finished the level)
+            int points = -1;
 
             // if enter key is pressed
             if (keyCode == 10)
             {
                 try
                 {
-                    // number of tries user attempted to get the correct answer
-                    tries++;
-
                     // check if the user is correct by parsing the integer from text field
                     if (Double.parseDouble(answerField.getText()) == answer)
                     {
@@ -864,14 +854,35 @@ class GamePanel extends JPanel
                         // hide answer field until user clicks on another operator
                         answerField.setVisible(false);
 
-                        errorMsg = "Correct! Click on another operator";
 
                         // show next level button if user completed the level (no more operators)
                         if (question.length() <= 2)
+                        {
+                            // calculate score
+                            points = (10 - tries) * 100;
+                            // only add to score if this is their first time playing level
+                            if (mainP.level == mainP.nextLevel)
+                            {
+                                mainP.score += points;
+                                mainP.nextLevel++;
+                                refreshAll();
+                            }
+
+                            // show next button to allow user to move onto next level
                             nextBtn.setVisible(true);
+
+                            errorMsg = "Correct! You finished the level with " + points + " points";
+                            // didn't complete level yet
+                        }
+                        else
+                        {
+                            errorMsg = "Correct! Click on another operator";
+                        }
                     }
                     else
                     {
+                        // number of tries user attempted to get the correct answer
+                        tries++;
                         // user incorrect
                         errorMsg = "Incorrect!";
                     }
@@ -938,6 +949,8 @@ class GamePanel extends JPanel
                     }
                     else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
                     {
+                        // number of tries user attempted to get the correct answer
+                        tries++;
                         errorMsg = "Do operations within first parenthesis first!";
                     }
                     else
@@ -1017,6 +1030,11 @@ class GamePanel extends JPanel
                 if (index == str.indexOf("/")) correctOp(op, index, str);
                 else errorMsg = "Do division first, from left to right";
             }
+
+            System.out.println("sq: " + simpQuestion);
+            if (simpQuestion.length() == 0)
+                // number of tries user attempted to get the correct answer
+                tries++;
         }
 
 
@@ -1071,7 +1089,9 @@ class GamePanel extends JPanel
 
             try
             {
-                answer = (double)((Integer)solver.eval(problem));
+                // TODO: remove one
+                answer = (double) solver.eval(problem);
+                //answer = (double)((Integer)solver.eval(problem));
             }
             catch (ScriptException e)
             {
@@ -1099,7 +1119,7 @@ class GamePanel extends JPanel
                 simpQuestion = question;
             }
 
-            // TODO: same problem (2 + 2 + 2 + 2) will not work with this simple replace
+            // TODO: same problem (4 + 2 + (4 + 2)) will not work with this simple replace
             // if not floating point number
             if (answer - (int) answer == 0)
                 // show as int
@@ -1128,50 +1148,125 @@ class GamePanel extends JPanel
     // game view for levels 11-20
     class LateLevelPanel extends JPanel implements MouseListener, MouseMotionListener
     {
-    	private int x;
-    	private int y;
-    	
+        // x and y position of currect operator user is dragging
+        private int x;
+        private int y;
+        // current operator
+        private char op;
+        // operators currently in place
+        private char[] operators;
+        // location of operators at the bottom where user drag from
+        private int[][] sourceLoc;
+        // operators at the bottom where user drag from
+        private char[] sourceOps;
+        // useful fonts for drawing texts
+        private Font bigArial;
+
         public LateLevelPanel()
         {
+            // initialize to defaults
             x = 0;
             y = 0;
-            
+            op = ' ';
+            operators = new char[4];
+            sourceLoc = new int[][]
+            {
+                new int[]
+                {
+                    200,
+                    300
+                }, new int[]
+                {
+                    300,
+                    300
+                }, new int[]
+                {
+                    400,
+                    300
+                }, new int[]
+                {
+                    500,
+                    300
+                }
+            };
+            sourceOps = new char[]
+            {
+                '+',
+                '-',
+                '*',
+                '/'
+            };
+
+            // fonts used for drawing texts
+            bigArial = new Font(Font.MONOSPACED, Font.PLAIN, 40);
+
+            // background clear color
             setBackground(Color.WHITE);
-            
+
             addMouseListener(this);
             addMouseMotionListener(this);
         }
-        
+
         public void paintComponent(Graphics g)
         {
-        	super.paintComponent(g);
-        	
-        	g.setColor(Color.BLUE);
-        	
-        	g.fillRect(x-20, y-20, 40, 40);
+            super.paintComponent(g);
+
+            g.setColor(Color.BLACK);
+            // draw operators
+            for (int i = 0; i < operators.length; i++)
+            {
+                g.drawString(operators[i] + "", 100 + i * 20, 50);
+            }
+
+            g.setFont(bigArial);
+            // draw source operators
+            for (int i = 0; i < sourceOps.length; i++)
+            {
+                g.drawString(sourceOps[i] + "", sourceLoc[i][0], sourceLoc[i][1]);
+            }
+
+            g.setColor(Color.BLUE);
+            //System.out.println(op);
+            if (op != ' ')
+                g.drawString(op + "", x, y);
         }
 
-		public void mouseClicked(MouseEvent e) {
-			
-		}
+        public void mouseClicked(MouseEvent e)
+        {}
 
-		public void mouseEntered(MouseEvent e)
-		{}
-		public void mouseExited(MouseEvent e)
-		{}
-		public void mousePressed(MouseEvent e)
-		{}
-		public void mouseReleased(MouseEvent e)
-		{}
+        public void mouseEntered(MouseEvent e)
+        {}
+        public void mouseExited(MouseEvent e)
+        {}
+        public void mousePressed(MouseEvent e)
+        {
+            // x and y position of click
+            int curX = e.getX();
+            int curY = e.getY();
 
-		public void mouseDragged(MouseEvent e) {
-			x = e.getX();
-			y = e.getY();
-			
-			repaint();
-		}
-		public void mouseMoved(MouseEvent e) {
-			
-		}
+            for (int i = 0; i < sourceLoc.length; i++)
+            {
+                if (curX > sourceLoc[i][0] - 10 && curX < sourceLoc[i][0] + 30 && curY > sourceLoc[i][1] - 30 && curY < sourceLoc[i][1] + 10)
+                    op = sourceOps[i];
+            }
+
+            System.out.println(op);
+        }
+        public void mouseReleased(MouseEvent e)
+        {
+            op = ' ';
+        }
+
+        public void mouseDragged(MouseEvent e)
+        {
+            x = e.getX() - 12;
+            y = e.getY() + 13;
+
+            repaint();
+        }
+        public void mouseMoved(MouseEvent e)
+        {
+
+        }
     }
 }
