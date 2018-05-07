@@ -1078,20 +1078,27 @@ class GamePanel extends JPanel
                 }
             }
 
+            // debug prints
             System.out.println("str: " + str);
             System.out.println("start: " + start);
             System.out.println("end: " + end);
             System.out.println("offset: " + offset);
             System.out.println("index: " + index);
 
+            // part of the problem the user is currently solving
             String problem = str.substring(start, end);
             System.out.println("problem: " + problem);
 
             try
             {
-                // TODO: remove one
-                answer = (double) solver.eval(problem);
-                //answer = (double)((Integer)solver.eval(problem));
+                // try to get the answer to the problem using "js" eval
+                try
+                {
+                    answer = (double) solver.eval(problem);
+                } catch (ClassCastException ex)
+                {
+                    answer = (double) ((Integer)solver.eval(problem));
+                }
             }
             catch (ScriptException e)
             {
@@ -1116,6 +1123,7 @@ class GamePanel extends JPanel
             }
             else
             {
+                // just use question as simpQuestion
                 simpQuestion = question;
             }
 
@@ -1141,6 +1149,7 @@ class GamePanel extends JPanel
 
             System.out.println("expected answer: " + answer);
 
+            // redraw the answerField and red box
             repaint();
         }
     }
@@ -1169,6 +1178,7 @@ class GamePanel extends JPanel
             y = 0;
             op = ' ';
             operators = new char[4];
+            // testing defaults, will change later
             sourceLoc = new int[][]
             {
                 new int[]
@@ -1189,6 +1199,7 @@ class GamePanel extends JPanel
                     300
                 }
             };
+            // operators the user can drag from
             sourceOps = new char[]
             {
                 '+',
@@ -1209,12 +1220,14 @@ class GamePanel extends JPanel
 
         public void paintComponent(Graphics g)
         {
+            // paint white background
             super.paintComponent(g);
 
             g.setColor(Color.BLACK);
             // draw operators
             for (int i = 0; i < operators.length; i++)
             {
+                // draw the operators spaced 20px starting from 100px
                 g.drawString(operators[i] + "", 100 + i * 20, 50);
             }
 
@@ -1222,18 +1235,17 @@ class GamePanel extends JPanel
             // draw source operators
             for (int i = 0; i < sourceOps.length; i++)
             {
+                // use sourceLoc to draw sourceOps
                 g.drawString(sourceOps[i] + "", sourceLoc[i][0], sourceLoc[i][1]);
             }
 
             g.setColor(Color.BLUE);
-            //System.out.println(op);
             if (op != ' ')
                 g.drawString(op + "", x, y);
         }
 
         public void mouseClicked(MouseEvent e)
         {}
-
         public void mouseEntered(MouseEvent e)
         {}
         public void mouseExited(MouseEvent e)
@@ -1244,29 +1256,34 @@ class GamePanel extends JPanel
             int curX = e.getX();
             int curY = e.getY();
 
+            // loop through all different operators
             for (int i = 0; i < sourceLoc.length; i++)
             {
+                // check if one was clicked
                 if (curX > sourceLoc[i][0] - 10 && curX < sourceLoc[i][0] + 30 && curY > sourceLoc[i][1] - 30 && curY < sourceLoc[i][1] + 10)
+                    // draw the operator that was clicked
                     op = sourceOps[i];
             }
 
+            // debug print
             System.out.println(op);
         }
         public void mouseReleased(MouseEvent e)
         {
+            // no operator is being dragged anymore
             op = ' ';
         }
 
         public void mouseDragged(MouseEvent e)
         {
+            // get the x and y of the center of the operator
             x = e.getX() - 12;
             y = e.getY() + 13;
 
+            // draw the moving operator
             repaint();
         }
         public void mouseMoved(MouseEvent e)
-        {
-
-        }
+        {}
     }
 }
