@@ -13,6 +13,7 @@ import javax.swing.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 import javax.script.ScriptEngineManager;
@@ -505,8 +506,11 @@ class GamePanel extends JPanel
     protected MenuPanel menuPanel;
     // main panel for card layout
     private MainPanel mainP;
-    // questions for all the levels
+    // questions for levels 1 to 10
     private String[] questions;
+    // questions for levels 11 to 20
+    // first 4 second-layer elements are the question, last element is the expected result
+    private int[][] opQuestions;
 
     public GamePanel(MainPanel mainPIn)
     {
@@ -514,21 +518,37 @@ class GamePanel extends JPanel
 
         // NOTE: questions must have space between operators and on the outside of parenthesis
         // questions must not contain 3 digit numbers
+        // questions.txt must contain 10 lines of the above questions
+        // it must also contain 10 lines of fill in the operator questions
+        // 4 numbers are separated by commas and the expected answer is also separated by a comma
 
         // load the questions from a file
         File f = new File("questions.txt");
         // read text into array
         String allText = "";
         // try to get the scanner
-        Scanner in ;
+        Scanner input;
+
+        questions = new String[10];
+        opQuestions = new int[10][5];
 
         try
-        { in = new Scanner(f);
+        {
+            input = new Scanner(f);
 
-            while ( in .hasNext())
-                allText += in .nextLine() + '\n';
+            // load early level questions from file
+            for (int i = 0; i < 10; i++)
+                questions[i] = input.nextLine();
 
-            questions = allText.split("\n");
+            // load late level questions
+            for (int i = 0; i < 10; i++)
+            {
+                // get current line, split by commas
+                String[] line = in.nextLine().split(",");
+                // turn string into into and put into array
+                for (int j = 0; j < 5; j++)
+                    opQuestions[i][j] = Integer.parseInt(line[j]);
+            }
         }
         catch (FileNotFoundException e)
         {
@@ -677,6 +697,7 @@ class GamePanel extends JPanel
             else
             {
                 gameCards.show(this, "late");
+                late.reset();
                 late.repaint();
             }
         }
@@ -1088,16 +1109,19 @@ class GamePanel extends JPanel
             // part of the problem the user is currently solving
             String problem = str.substring(start, end);
             System.out.println("problem: " + problem);
+            System.out.println("question: " + question);
 
             try
             {
+                // TODO: only use first one
                 // try to get the answer to the problem using "js" eval
                 try
                 {
                     answer = (double) solver.eval(problem);
-                } catch (ClassCastException ex)
+                }
+                catch (ClassCastException ex)
                 {
-                    answer = (double) ((Integer)solver.eval(problem));
+                    answer = (double)((Integer) solver.eval(problem));
                 }
             }
             catch (ScriptException e)
@@ -1170,6 +1194,14 @@ class GamePanel extends JPanel
         private char[] sourceOps;
         // useful fonts for drawing texts
         private Font bigArial;
+        // how many times the user attempted to solve the problem
+        private int tries;
+        // currect question the user is solving
+        private int[] question;
+        // answer user should try to get to by putting operators
+        private int answer;
+        // user's current answer attempt
+        private int curAnswer;
 
         public LateLevelPanel()
         {
@@ -1177,7 +1209,12 @@ class GamePanel extends JPanel
             x = 0;
             y = 0;
             op = ' ';
-            operators = new char[4];
+            operators = new char[]
+            {
+                '+',
+                '+',
+                '-'
+            };
             // testing defaults, will change later
             sourceLoc = new int[][]
             {
@@ -1218,26 +1255,46 @@ class GamePanel extends JPanel
             addMouseMotionListener(this);
         }
 
+
+        // reset error message and field variables
+        public void reset()
+        {
+            // currect question the user is solving
+            question = Arrays.copyOfRange(opQuestions[mainP.level - 11], 0, 4);
+            answer = opQuestions[mainP.level - 11][4];
+            curAnswer = 0;
+            tries = 0;
+        }
+
+
         public void paintComponent(Graphics g)
         {
             // paint white background
             super.paintComponent(g);
 
-            g.setColor(Color.BLACK);
+            g.setFont(bigArial);
+            g.setColor(Color.BLUE);
             // draw operators
             for (int i = 0; i < operators.length; i++)
-            {
-                // draw the operators spaced 20px starting from 100px
-                g.drawString(operators[i] + "", 100 + i * 20, 50);
-            }
+                // draw the operators spaced 100px starting from 200px
+                g.drawString(operators[i] + "", 200 + i * 100, 120);
 
-            g.setFont(bigArial);
+            g.setColor(Color.BLACK);
+            // draw numbers
+            for (int i = 0; i < question.length; i++)
+                // draw the operators spaced 100px starting from 150px
+                g.drawString(question[i] + "", 150 + i * 100, 120);
+
+            // draw answer
+            g.drawString(answer + "", 500, 70);
+
+            // draw equal sign and user's answer
+            g.drawString("= ", 500, 120);
+
             // draw source operators
             for (int i = 0; i < sourceOps.length; i++)
-            {
                 // use sourceLoc to draw sourceOps
                 g.drawString(sourceOps[i] + "", sourceLoc[i][0], sourceLoc[i][1]);
-            }
 
             g.setColor(Color.BLUE);
             if (op != ' ')
@@ -1270,8 +1327,24 @@ class GamePanel extends JPanel
         }
         public void mouseReleased(MouseEvent e)
         {
+            // x and y position of release
+            int curX = e.getX();
+            int curY = e.getY();
+
+            // loop through all different operators positions
+            for (int i = 0; i < operators.length; i++)
+            {
+                // check if release in position
+                if (curX > 200 + i * 100 && curX < 240 + i * 100 && curY > 80 && curY < 120)
+                    // set that operator
+                    operators[i] = op;
+            }
+
             // no operator is being dragged anymore
             op = ' ';
+
+            // draw new operator in place
+            repaint();
         }
 
         public void mouseDragged(MouseEvent e)
