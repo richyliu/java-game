@@ -544,7 +544,7 @@ class GamePanel extends JPanel
             for (int i = 0; i < 10; i++)
             {
                 // get current line, split by commas
-                String[] line = in.nextLine().split(",");
+                String[] line = input.nextLine().split(",");
                 // turn string into into and put into array
                 for (int j = 0; j < 5; j++)
                     opQuestions[i][j] = Integer.parseInt(line[j]);
@@ -573,6 +573,33 @@ class GamePanel extends JPanel
         centerPanel.refresh();
         menuPanel.progress.repaint();
         mainP.levelsPanel.gridPanel.refresh();
+    }
+
+    // solves a math problem using the "js" evaluator
+    public double solve(String question)
+    {
+        // solve a math problem using "js" ScriptEngine
+        ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
+
+        try
+        {
+            // TODO: only use first one
+            // try to get the answer to the problem using "js" eval
+            try
+            {
+                return (double) solver.eval(question);
+            }
+            catch (ClassCastException ex)
+            {
+                return (double)((Integer) solver.eval(question));
+            }
+        }
+        catch (ScriptException e)
+        {
+            System.err.println(question + " is badly formatted!");
+            // error return
+            return 1000000;
+        }
     }
 
     // has the back and pause buttons
@@ -643,7 +670,6 @@ class GamePanel extends JPanel
                 // draw with black color
                 g.setColor(Color.BLACK);
 
-                System.out.println("current level: " + mainP.level);
                 // draw rectangles corresponding to the level the user is on
                 for (int i = 0; i < mainP.level; i++)
                 {
@@ -803,7 +829,7 @@ class GamePanel extends JPanel
 
             if (boxPos >= 0)
                 // draw "=" symbol before answerField
-                g.drawString("=", 50 + boxPos * 24, 180);
+                g.drawString("=", 30 + boxPos * 24, 180);
 
             g.setColor(Color.RED);
             // draw boxes around current operation the user is calculating
@@ -836,13 +862,8 @@ class GamePanel extends JPanel
         // next level button clicked
         public void actionPerformed(ActionEvent e)
         {
-            // unlock the next level if user has yet to unlock it
-            mainP.nextLevel = Math.max(mainP.nextLevel, mainP.level + 1);
-
             // go the next level
             mainP.level++;
-
-            System.out.println("nextLevel: " + mainP.nextLevel + ", level: " + mainP.level);
 
             // repaint gamePanel
             refreshAll();
@@ -866,7 +887,6 @@ class GamePanel extends JPanel
                     {
                         // replace question with simplified question
                         question = simpQuestion;
-                        System.out.println("simpQuestion: " + simpQuestion);
                         simpQuestion = "";
 
                         boxPos = -1;
@@ -879,13 +899,16 @@ class GamePanel extends JPanel
                         // show next level button if user completed the level (no more operators)
                         if (question.length() <= 2)
                         {
-                            // calculate score
-                            points = (10 - tries) * 100;
+                            // calculate score (cannot be negative)
+                            points = Math.max(0, (10 - tries) * 100);
                             // only add to score if this is their first time playing level
                             if (mainP.level == mainP.nextLevel)
                             {
                                 mainP.score += points;
+                                // unlock next level
                                 mainP.nextLevel++;
+
+                                // refresh padlock icons
                                 refreshAll();
                             }
 
@@ -945,8 +968,6 @@ class GamePanel extends JPanel
             // part of problem in between parenthesis
             String inside = "";
 
-            System.out.println("\n\n");
-
             // player clicked on a character within the string
             if (y > 95 && y < 120 && index >= 0 && index < question.length())
             {
@@ -966,7 +987,7 @@ class GamePanel extends JPanel
                         System.out.println("inside: " + inside);
                         System.out.println("insideIndex: " + insideIndex);
                         // inside of parens
-                        orderOfOps(operation, insideIndex, inside);
+                        orderOfOps(operation, insideIndex, inside, question.indexOf("(") + 1);
                     }
                     else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
                     {
@@ -977,7 +998,7 @@ class GamePanel extends JPanel
                     else
                     {
                         // do in the correct order
-                        orderOfOps(operation, index, question);
+                        orderOfOps(operation, index, question, 0);
                     }
 
                     repaint();
@@ -996,7 +1017,7 @@ class GamePanel extends JPanel
         // checks whether op is the correct operator to calculate in str
         // set simpQuestion to simplified question, set answer to answer of
         // operation, and errorMsg to correct message
-        public void orderOfOps(char op, int index, String str)
+        public void orderOfOps(char op, int index, String str, int offset)
         {
             // addition/subtraction only if no multiply/divide
             if (str.indexOf("*") == -1 && str.indexOf("/") == -1)
@@ -1004,25 +1025,25 @@ class GamePanel extends JPanel
                 if (str.indexOf("-") == -1)
                 {
                     // add
-                    if (index == str.indexOf("+")) correctOp(op, index, str);
+                    if (index == str.indexOf("+")) correctOp(op, index, str, offset);
                     else errorMsg = "Do addition first, from left to right";
                 }
                 else if (str.indexOf("+") == -1)
                 {
                     // subtract
-                    if (index == str.indexOf("-")) correctOp(op, index, str);
+                    if (index == str.indexOf("-")) correctOp(op, index, str, offset);
                     else errorMsg = "Do subraction first, from left to right";
                 }
                 else if (str.indexOf("+") < str.indexOf("-"))
                 {
                     // add
-                    if (index == str.indexOf("+")) correctOp(op, index, str);
+                    if (index == str.indexOf("+")) correctOp(op, index, str, offset);
                     else errorMsg = "Do addition first, from left to right";
                 }
                 else
                 {
                     // subtract
-                    if (index == str.indexOf("-")) correctOp(op, index, str);
+                    if (index == str.indexOf("-")) correctOp(op, index, str, offset);
                     else errorMsg = "Do subraction first, from left to right";
                 }
                 // do multiply/divide whichever comes first
@@ -1030,29 +1051,28 @@ class GamePanel extends JPanel
             else if (str.indexOf("/") == -1)
             {
                 // multiply
-                if (index == str.indexOf("*")) correctOp(op, index, str);
+                if (index == str.indexOf("*")) correctOp(op, index, str, offset);
                 else errorMsg = "Do multiplication first, from left to right";
             }
             else if (str.indexOf("*") == -1)
             {
                 // divide
-                if (index == str.indexOf("/")) correctOp(op, index, str);
+                if (index == str.indexOf("/")) correctOp(op, index, str, offset);
                 else errorMsg = "Do division first, from left to right";
             }
             else if (str.indexOf("*") < str.indexOf("/"))
             {
                 // multiply
-                if (index == str.indexOf("*")) correctOp(op, index, str);
+                if (index == str.indexOf("*")) correctOp(op, index, str, offset);
                 else errorMsg = "Do multiplication first, from left to right";
             }
             else
             {
                 // divide
-                if (index == str.indexOf("/")) correctOp(op, index, str);
+                if (index == str.indexOf("/")) correctOp(op, index, str, offset);
                 else errorMsg = "Do division first, from left to right";
             }
 
-            System.out.println("sq: " + simpQuestion);
             if (simpQuestion.length() == 0)
                 // number of tries user attempted to get the correct answer
                 tries++;
@@ -1060,10 +1080,8 @@ class GamePanel extends JPanel
 
 
         // calculate the correct answer for this operator at index and draw onscreen
-        public void correctOp(char op, int index, String str)
+        public void correctOp(char op, int index, String str, int offset)
         {
-            // solve a math problem using "js" ScriptEngine
-            ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
             // impossible value for answer for debug
             answer = 1000000;
             // start and end indicies problem of the current operator
@@ -1072,8 +1090,6 @@ class GamePanel extends JPanel
             int end = str.length();
             // exit loop var
             boolean exit = false;
-            // how much index is offset from the original string
-            int offset = question.indexOf(str);
 
             // go back to find start
             for (int i = index - 2; i >= 0 && !exit; i--)
@@ -1099,43 +1115,29 @@ class GamePanel extends JPanel
                 }
             }
 
-            // debug prints
-            System.out.println("str: " + str);
-            System.out.println("start: " + start);
-            System.out.println("end: " + end);
-            System.out.println("offset: " + offset);
-            System.out.println("index: " + index);
-
             // part of the problem the user is currently solving
             String problem = str.substring(start, end);
+            System.out.println("start: " + start);
+            System.out.println("end: " + end);
             System.out.println("problem: " + problem);
+            System.out.println("str: " + str);
+
+
+            // user solver function above in GamePanel
+            answer = solve(problem);
+
             System.out.println("question: " + question);
+            System.out.println("index: " + index);
+            System.out.println("offset: " + offset);
 
-            try
-            {
-                // TODO: only use first one
-                // try to get the answer to the problem using "js" eval
-                try
-                {
-                    answer = (double) solver.eval(problem);
-                }
-                catch (ClassCastException ex)
-                {
-                    answer = (double)((Integer) solver.eval(problem));
-                }
-            }
-            catch (ScriptException e)
-            {
-                System.err.println(problem + " is badly formatted!");
-            }
-
-            System.out.println("answer: " + answer);
+            // draw the box
+            boxPos = offset + start;
+            boxSize = problem.length();
 
             StringBuilder sqBuilder = new StringBuilder(question);
             // only one operator left, remove parenthesis around number if applicable
             if (str.length() < 9 && str.length() < question.length())
             {
-                System.out.println("removing parenthesis...");
                 // remove beginning parenthesis by looking back from operator
                 sqBuilder.deleteCharAt(sqBuilder.lastIndexOf("(", index + offset));
                 // remove end parenthesis by looking forward from operator
@@ -1143,7 +1145,8 @@ class GamePanel extends JPanel
                 // replace simpQuestion with sqBuilder w/o parens
                 simpQuestion = sqBuilder.toString();
 
-                System.out.println("simpQuestion (2): " + simpQuestion);
+                // account for removed beginning parenthesis
+                offset--;
             }
             else
             {
@@ -1151,19 +1154,21 @@ class GamePanel extends JPanel
                 simpQuestion = question;
             }
 
+            System.out.println("simpQuestion (1): " + simpQuestion);
             // TODO: same problem (4 + 2 + (4 + 2)) will not work with this simple replace
             // if not floating point number
             if (answer - (int) answer == 0)
                 // show as int
-                simpQuestion = simpQuestion.replace(problem, (int) answer + "");
+                //simpQuestion = simpQuestion.replace(problem, (int) answer + "");
+                simpQuestion =
+                simpQuestion.substring(0, offset + start) +
+                (int) answer +
+                simpQuestion.substring(offset + end, simpQuestion.length());
             else
                 // show with decimal point
                 simpQuestion = simpQuestion.replace(problem, answer + "");
+            System.out.println("simpQuestion (2): " + simpQuestion);
 
-
-            // draw the box
-            boxPos = index + offset - (index - start);
-            boxSize = problem.length();
 
             // move the answerfield
             answerField.setBounds(30 + (index + offset) * 24, 150, 100, 50);
@@ -1171,15 +1176,13 @@ class GamePanel extends JPanel
             // put focus on answer field so user can enter in the answer
             answerField.requestFocusInWindow();
 
-            System.out.println("expected answer: " + answer);
-
             // redraw the answerField and red box
             repaint();
         }
     }
 
     // game view for levels 11-20
-    class LateLevelPanel extends JPanel implements MouseListener, MouseMotionListener
+    class LateLevelPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener
     {
         // x and y position of currect operator user is dragging
         private int x;
@@ -1188,8 +1191,6 @@ class GamePanel extends JPanel
         private char op;
         // operators currently in place
         private char[] operators;
-        // location of operators at the bottom where user drag from
-        private int[][] sourceLoc;
         // operators at the bottom where user drag from
         private char[] sourceOps;
         // useful fonts for drawing texts
@@ -1199,9 +1200,11 @@ class GamePanel extends JPanel
         // currect question the user is solving
         private int[] question;
         // answer user should try to get to by putting operators
-        private int answer;
+        private double answer;
         // user's current answer attempt
-        private int curAnswer;
+        private double curAnswer;
+        // button to allow the user to move on to the next level
+        private JButton nextBtn;
 
         public LateLevelPanel()
         {
@@ -1211,30 +1214,9 @@ class GamePanel extends JPanel
             op = ' ';
             operators = new char[]
             {
-                '+',
-                '+',
-                '-'
-            };
-            // testing defaults, will change later
-            sourceLoc = new int[][]
-            {
-                new int[]
-                {
-                    200,
-                    300
-                }, new int[]
-                {
-                    300,
-                    300
-                }, new int[]
-                {
-                    400,
-                    300
-                }, new int[]
-                {
-                    500,
-                    300
-                }
+                ' ',
+                ' ',
+                ' '
             };
             // operators the user can drag from
             sourceOps = new char[]
@@ -1251,6 +1233,14 @@ class GamePanel extends JPanel
             // background clear color
             setBackground(Color.WHITE);
 
+            // position next level button in the bottom of the screen
+            nextBtn = new JButton("Next level");
+            nextBtn.addActionListener(this);
+            nextBtn.setBounds(350, 450, 130, 30);
+            nextBtn.setVisible(false);
+
+            add(nextBtn);
+
             addMouseListener(this);
             addMouseMotionListener(this);
         }
@@ -1261,9 +1251,19 @@ class GamePanel extends JPanel
         {
             // currect question the user is solving
             question = Arrays.copyOfRange(opQuestions[mainP.level - 11], 0, 4);
+
             answer = opQuestions[mainP.level - 11][4];
+
+            operators = new char[]
+            {
+                ' ',
+                ' ',
+                ' '
+            };
             curAnswer = 0;
             tries = 0;
+
+            nextBtn.setVisible(false);
         }
 
 
@@ -1276,8 +1276,13 @@ class GamePanel extends JPanel
             g.setColor(Color.BLUE);
             // draw operators
             for (int i = 0; i < operators.length; i++)
+            {
+                // draw number boxes
+                g.drawRect(190 + i * 100, 85, 40, 40);
+
                 // draw the operators spaced 100px starting from 200px
                 g.drawString(operators[i] + "", 200 + i * 100, 120);
+            }
 
             g.setColor(Color.BLACK);
             // draw numbers
@@ -1286,19 +1291,34 @@ class GamePanel extends JPanel
                 g.drawString(question[i] + "", 150 + i * 100, 120);
 
             // draw answer
-            g.drawString(answer + "", 500, 70);
+            g.drawString(answer + "", 550, 70);
 
             // draw equal sign and user's answer
-            g.drawString("= ", 500, 120);
+            g.drawString("= " + curAnswer, 500, 120);
 
             // draw source operators
             for (int i = 0; i < sourceOps.length; i++)
+            {
+                // draw number boxes
+                g.drawRect(190 + i * 100, 270, 40, 40);
+
                 // use sourceLoc to draw sourceOps
-                g.drawString(sourceOps[i] + "", sourceLoc[i][0], sourceLoc[i][1]);
+                g.drawString(sourceOps[i] + "", 200 + i * 100, 300);
+            }
 
             g.setColor(Color.BLUE);
             if (op != ' ')
                 g.drawString(op + "", x, y);
+        }
+
+        // next level button clicked
+        public void actionPerformed(ActionEvent e)
+        {
+            // go the next level
+            mainP.level++;
+
+            // repaint gamePanel
+            refreshAll();
         }
 
         public void mouseClicked(MouseEvent e)
@@ -1314,16 +1334,13 @@ class GamePanel extends JPanel
             int curY = e.getY();
 
             // loop through all different operators
-            for (int i = 0; i < sourceLoc.length; i++)
+            for (int i = 0; i < sourceOps.length; i++)
             {
                 // check if one was clicked
-                if (curX > sourceLoc[i][0] - 10 && curX < sourceLoc[i][0] + 30 && curY > sourceLoc[i][1] - 30 && curY < sourceLoc[i][1] + 10)
+                if (curX > 200 + i * 100 - 10 && curX < 230 + i * 100 && curY > 270 && curY < 310)
                     // draw the operator that was clicked
                     op = sourceOps[i];
             }
-
-            // debug print
-            System.out.println(op);
         }
         public void mouseReleased(MouseEvent e)
         {
@@ -1335,13 +1352,16 @@ class GamePanel extends JPanel
             for (int i = 0; i < operators.length; i++)
             {
                 // check if release in position
-                if (curX > 200 + i * 100 && curX < 240 + i * 100 && curY > 80 && curY < 120)
+                if (curX > 190 + i * 100 && curX < 230 + i * 100 && curY > 85 && curY < 125)
                     // set that operator
                     operators[i] = op;
             }
 
             // no operator is being dragged anymore
             op = ' ';
+
+            // calculate the user's answer
+            calcAnswer();
 
             // draw new operator in place
             repaint();
@@ -1358,5 +1378,56 @@ class GamePanel extends JPanel
         }
         public void mouseMoved(MouseEvent e)
         {}
+
+        // calculates the user's answers using the user's operation
+        // also checks if the answer is correct
+        public void calcAnswer()
+        {
+            // question with the numbers and operations to be fed into the eval
+            String ques = "";
+            // points user earned on this level
+            int points = 0;
+
+            // add all 4 question numbers and all 3 operators
+            for (int i = 0; i < 3; i++)
+                ques += "" + question[i] + operators[i];
+            ques += question[3];
+
+            // problem not fully solved yet
+            if (ques.indexOf(' ') != -1)
+            {
+                // do nothing
+                curAnswer = 0;
+            }
+            else
+            {
+                curAnswer = solve(ques);
+
+                // user got correct, move onto next level
+                if (answer == curAnswer)
+                {
+                    // calculate score (cannot be negative)
+                    points = Math.max(0, (10 - tries) * 100);
+
+                    // only add to score if this is their first time playing level
+                    if (mainP.level == mainP.nextLevel)
+                    {
+                        mainP.score += points;
+                        // unlock next level
+                        mainP.nextLevel++;
+
+                        // refresh padlock icons
+                        refreshAll();
+                    }
+
+                    nextBtn.setVisible(true);
+                    // incorrect, add to tries
+                }
+                else
+                    tries++;
+            }
+
+            repaint();
+        }
     }
 }
