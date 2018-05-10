@@ -3,6 +3,9 @@
  * 4/9/18
  * Main.java
  * Operators game
+ * 
+ * General overview:
+ * 
  */
 
 
@@ -19,6 +22,8 @@ import javax.imageio.ImageIO;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+
+import java.io.IOException;
 
 
 // Main class containing main method which is first ran
@@ -511,10 +516,38 @@ class GamePanel extends JPanel
     // questions for levels 11 to 20
     // first 4 second-layer elements are the question, last element is the expected result
     private int[][] opQuestions;
+    // player image
+    private Image player;
+    // enemy image
+    private Image enemy;
+    // player health image
+    private Image healthImage;
+    // arrow attack image
+    private Image arrow;
+    // health of the enemy. starts out as the number of operators
+    private int enemyHealth;
+    // max health the enemy can have. starts out as the number of operators
+    private int maxEnemyHealth;
+    // player's health. number between 0 and 1
+    private double health;
 
     public GamePanel(MainPanel mainPIn)
     {
         mainP = mainPIn;
+
+        // try to get images
+        try
+        {
+            player = ImageIO.read(new File("assets/person1.png"));
+            enemy = ImageIO.read(new File("assets/monster.png"));
+            healthImage = ImageIO.read(new File("assets/hearts.png"));
+            arrow = ImageIO.read(new File("assets/arrow.png"));
+        }
+        catch (IOException e)
+        {
+            // print error message
+            e.printStackTrace();
+        }
 
         // NOTE: questions must have space between operators and on the outside of parenthesis
         // questions must not contain 3 digit numbers
@@ -554,6 +587,8 @@ class GamePanel extends JPanel
         {
             System.err.println("\n\nERROR: Cannot find/open questions.txt file to read\n\n\n");
         }
+
+        health = 1;
 
         // center panel is a card layout
         centerPanel = new CenterPanel(mainP);
@@ -837,6 +872,20 @@ class GamePanel extends JPanel
             {
                 g.drawRect(48 + boxPos * 24, 90, boxSize * 24, 40);
             }
+
+            // draw player and enemy
+            g.drawImage(player, 100, 300, 150, 225, this);
+            g.drawImage(enemy, 500, 350, 150, 150, this);
+
+            // draw enemy health bar
+            g.setColor(Color.BLACK);
+            g.drawRect(520, 300, 106, 26);
+            g.setColor(Color.RED);
+            // fill in from 0 to 100 according to enemyHealth percentage
+            g.fillRect(523, 303, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
+
+            // draw player health bar
+            g.drawImage(healthImage, 140, 280, (int)(health * 90), 30, this);
         }
 
         // reset error message and field variables
@@ -857,6 +906,16 @@ class GamePanel extends JPanel
 
             // 1 million should never be the correct answer
             answer = 1000000;
+
+            // max enemy health calculated by counting number of operators
+            maxEnemyHealth = 0;
+            for (int i = 0; i < question.length(); i++)
+                if ("+-*/".indexOf(question.charAt(i)) != -1)
+                    maxEnemyHealth++;
+            // enemy health
+            enemyHealth = maxEnemyHealth;
+
+            System.out.println("enemyHealth: " + enemyHealth);
         }
 
         // next level button clicked
@@ -895,6 +954,8 @@ class GamePanel extends JPanel
                         // hide answer field until user clicks on another operator
                         answerField.setVisible(false);
 
+                        // "hit" monster
+                        enemyHealth--;
 
                         // show next level button if user completed the level (no more operators)
                         if (question.length() <= 2)
@@ -927,6 +988,7 @@ class GamePanel extends JPanel
                     {
                         // number of tries user attempted to get the correct answer
                         tries++;
+                        health -= 0.333;
                         // user incorrect
                         errorMsg = "Incorrect!";
                     }
