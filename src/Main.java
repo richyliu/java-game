@@ -538,7 +538,8 @@ class GamePanel extends JPanel
         // try to get images
         try
         {
-            player = ImageIO.read(new File("assets/person1.png"));
+            //player = ImageIO.read(new File("assets/person1.png"));
+            player = new ImageIcon("assets/person1.gif").getImage();
             enemy = ImageIO.read(new File("assets/monster.png"));
             healthImage = ImageIO.read(new File("assets/hearts.png"));
             arrow = ImageIO.read(new File("assets/arrow.png"));
