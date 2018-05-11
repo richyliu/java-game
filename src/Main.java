@@ -272,8 +272,9 @@ class InstructionPanel extends JPanel implements ActionListener
             "    2. exponents (^)\n" +
             "    3. multiplication and division (*, /)\n" +
             "    4. addition and subtraction (+, -)\n\n" +
-            "For levels 1-10, calculate the correct answer using the order of operations\n" +
-            "For levels 11-20, drag the numbers and operations to create the desired number", 20, 4);
+            "For levels 1-10, calculate the correct answer by clicking on the operations in order\n" +
+            "For levels 11-20, drag the numbers and operations to create the desired number" + 
+            "An easy way to remember the order of operations is by remembering PEMDAS", 20, 4);
         // use an larger arial font for the instructions
         textArea.setFont(mainP.arial);
         textArea.setEditable(false);
@@ -524,6 +525,10 @@ class GamePanel extends JPanel
     private Image healthImage;
     // arrow attack image
     private Image arrow;
+    // fireball attack image
+    private Image fireball;
+    // fire image for when enmy dies
+    private Image fire;
     // health of the enemy. starts out as the number of operators
     private int enemyHealth;
     // max health the enemy can have. starts out as the number of operators
@@ -538,11 +543,14 @@ class GamePanel extends JPanel
         // try to get images
         try
         {
-            //player = ImageIO.read(new File("assets/person1.png"));
-            player = new ImageIcon("assets/person1.gif").getImage();
-            enemy = ImageIO.read(new File("assets/monster.png"));
+            player = ImageIO.read(new File("assets/person1.png"));
+//            player = new ImageIcon("assets/person1.gif").getImage();
+            enemy = new ImageIcon("assets/monster.gif").getImage();
+//            enemy = ImageIO.read(new File("assets/monster.png"));
             healthImage = ImageIO.read(new File("assets/hearts.png"));
             arrow = ImageIO.read(new File("assets/arrow.png"));
+            fireball = ImageIO.read(new File("assets/fireball.gif"));
+            fire = new ImageIcon("assets/fire.gif").getImage();
         }
         catch (IOException e)
         {
@@ -804,8 +812,6 @@ class GamePanel extends JPanel
         private String errorMsg;
         // allows the user to go the the next level once they got the correct answer
         private JButton nextBtn;
-        // how many times the user attempted to solve the problem
-        private int tries;
         // currect question the user is solving
         private String question;
         // simplified question the user will solve next 
@@ -815,6 +821,8 @@ class GamePanel extends JPanel
         private int boxSize;
         // answer the user should enter into the text field
         private double answer;
+        // which frame the fireball is on while travelling (-1 for no fireball)
+        private int fireballFrame;
 
         public EarlyLevelPanel(MainPanel mainPIn)
         {
@@ -831,14 +839,14 @@ class GamePanel extends JPanel
             answerField = new JTextField();
             answerField.addKeyListener(this);
             answerField.setFont(bigArial);
-            answerField.setBounds(600, 85, 80, 50);
+            answerField.setBounds(600, 35, 80, 50);
             // don't show the answer field until the user clicks on an operation
             answerField.setVisible(false);
 
             // position next level button in the bottom of the screen
             nextBtn = new JButton("Next level");
             nextBtn.addActionListener(this);
-            nextBtn.setBounds(350, 450, 130, 30);
+            nextBtn.setBounds(300, 480, 130, 30);
             nextBtn.setVisible(false);
 
             // reset can initialize field variables errorMsg
@@ -857,42 +865,67 @@ class GamePanel extends JPanel
 
             g.setFont(bigArial);
             // draw the question and an equal sign
-            g.drawString(question, 50, 120);
+            g.drawString(question, 50, 70);
 
             g.setFont(bigSerif);
             // draw error message
-            g.drawString(errorMsg, 50, 250);
+            g.drawString(errorMsg, 50, 180);
 
             if (boxPos >= 0)
                 // draw "=" symbol before answerField
-                g.drawString("=", 30 + boxPos * 24, 180);
+                g.drawString("=", 30 + boxPos * 24, 130);
 
             g.setColor(Color.RED);
             // draw boxes around current operation the user is calculating
             if (boxPos >= 0 && boxSize > 0)
             {
-                g.drawRect(48 + boxPos * 24, 90, boxSize * 24, 40);
+                g.drawRect(48 + boxPos * 24, 40, boxSize * 24, 40);
             }
 
             // draw player and enemy
-            g.drawImage(player, 100, 300, 150, 225, this);
-            g.drawImage(enemy, 500, 350, 150, 150, this);
+            g.drawImage(player, 100, 250, 150, 225, this);
+            g.drawImage(enemy, 500, 300, 150, 150, this);
 
             // draw enemy health bar
             g.setColor(Color.BLACK);
-            g.drawRect(520, 300, 106, 26);
+            g.drawRect(520, 250, 106, 26);
             g.setColor(Color.RED);
-            // fill in from 0 to 100 according to enemyHealth percentage
-            g.fillRect(523, 303, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
+            if (enemyHealth >= 0)
+            	// fill in from 0 to 100 according to enemyHealth percentage
+            	g.fillRect(523, 253, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
 
             // draw player health bar
-            g.drawImage(healthImage, 140, 280, (int)(health * 90), 30, this);
+            g.drawImage(healthImage, 140, 230, 140 + (int)(health*90), 260, 0, 0, (int)(health*450), 150, this);
+            
+            // draw fireball
+            if (fireballFrame > -1)
+            {
+            	fireballFrame -= 30;
+            	
+            	g.drawImage(fireball, 200 + (240-fireballFrame), 300, 100, 100, this);
+            	
+            	// "hit" the enemy
+            	if (fireballFrame < 0)
+            	{
+                    enemyHealth--;
+                    
+                    // special code to draw the fire death
+                    if (enemyHealth == 0)
+                    	enemyHealth = -1;
+            	}
+            }
+            
+            // show fire death of enemy
+            if (enemyHealth == -1)
+            	g.drawImage(fire, 500, 300, 150, 150, this);
+            
+            System.out.println("health: " + health);
         }
 
         // reset error message and field variables
         public void reset()
         {
-            errorMsg = "Click an operation to start solving! Remember to press enter in the text field";
+            errorMsg = "Click an operation to start solving and press enter in the text field";
 
             // currect question the user is solving
             question = questions[mainP.level - 1];
@@ -900,7 +933,6 @@ class GamePanel extends JPanel
 
             answerField.setVisible(false);
             nextBtn.setVisible(false);
-            tries = 0;
 
             boxPos = -1;
             boxSize = -1;
@@ -916,7 +948,7 @@ class GamePanel extends JPanel
             // enemy health
             enemyHealth = maxEnemyHealth;
 
-            System.out.println("enemyHealth: " + enemyHealth);
+            fireballFrame = -1;
         }
 
         // next level button clicked
@@ -955,14 +987,14 @@ class GamePanel extends JPanel
                         // hide answer field until user clicks on another operator
                         answerField.setVisible(false);
 
-                        // "hit" monster
-                        enemyHealth--;
+                        // release fireball to hit monster
+                        fireballFrame = 240;
 
                         // show next level button if user completed the level (no more operators)
                         if (question.length() <= 2)
                         {
                             // calculate score (cannot be negative)
-                            points = Math.max(0, (10 - tries) * 100);
+                            points = (int)Math.max(0, health * 100) * 10;
                             // only add to score if this is their first time playing level
                             if (mainP.level == mainP.nextLevel)
                             {
@@ -987,8 +1019,6 @@ class GamePanel extends JPanel
                     }
                     else
                     {
-                        // number of tries user attempted to get the correct answer
-                        tries++;
                         health -= 0.333;
                         // user incorrect
                         errorMsg = "Incorrect!";
@@ -1032,7 +1062,7 @@ class GamePanel extends JPanel
             String inside = "";
 
             // player clicked on a character within the string
-            if (y > 95 && y < 120 && index >= 0 && index < question.length())
+            if (y > 45 && y < 70 && index >= 0 && index < question.length())
             {
                 operation = question.charAt(index);
 
@@ -1054,8 +1084,8 @@ class GamePanel extends JPanel
                     }
                     else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
                     {
-                        // number of tries user attempted to get the correct answer
-                        tries++;
+                    	// incorrect order
+                        health -= 0.1666;
                         errorMsg = "Do operations within first parenthesis first!";
                     }
                     else
@@ -1136,9 +1166,9 @@ class GamePanel extends JPanel
                 else errorMsg = "Do division first, from left to right";
             }
 
+            // user got operation incorrect
             if (simpQuestion.length() == 0)
-                // number of tries user attempted to get the correct answer
-                tries++;
+            	health -= 0.1666;
         }
 
 
@@ -1234,7 +1264,7 @@ class GamePanel extends JPanel
 
 
             // move the answerfield
-            answerField.setBounds(30 + (index + offset) * 24, 150, 100, 50);
+            answerField.setBounds(30 + (index + offset) * 24, 100, 100, 50);
             answerField.setVisible(true);
             // put focus on answer field so user can enter in the answer
             answerField.requestFocusInWindow();
