@@ -46,10 +46,13 @@ public class Main
         JFrame frame = new JFrame("Operators");
 
         // set size, close operation, location, and resizability
-        frame.setSize(800, 600);
+        frame.setSize(820, 620);
         frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
         frame.setLocation(400, 200);
         frame.setResizable(true);
+
+        // add empty 10px margin on all sides
+        frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // create a new panel using the panel below
         MainPanel panel = new MainPanel();
@@ -79,6 +82,8 @@ class MainPanel extends JPanel
     protected int score;
     // levelsPanel reference for padlock refresh
     protected LevelsPanel levelsPanel;
+    // names and score of players
+    protected String[][] players;
 
     // initialize panel
     public MainPanel()
@@ -96,6 +101,8 @@ class MainPanel extends JPanel
         nextLevel = 11;
         // starts at 0 score
         score = 0;
+        player = new String[10][2];
+
         gamePanel = new GamePanel(this);
         arial = new Font("Arial", Font.PLAIN, 20);
         levelsPanel = new LevelsPanel(this);
@@ -114,6 +121,34 @@ class MainPanel extends JPanel
     public void showCard(String name)
     {
         cards.show(this, name);
+    }
+
+    
+    // load player high/current score data from file
+    public void loadPlayers()
+    {
+        // load file with high score data
+        File highScoreFile = new File("highScore.txt");
+        Scanner highScoreScanner;
+        // the text in the high score file
+        String allText = "";
+
+        try
+        {
+            // initialize the scanner with the high score file
+            highScoreScanner = new Scanner(highScoreFile);
+
+            // read all the lines into allText
+            while (highScoreScanner.hasNext())
+                allText += highScoreScanner.nextLine() + "\n";
+        }
+        catch (FileNotFoundException e)
+        {
+            // tell the user if error
+            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+        }
+
+        players = allText.split("\n");
     }
 }
 
@@ -208,6 +243,48 @@ class HomePanel extends JPanel
 }
 
 
+class UserPanel extends JPanel implements ActionListener
+{
+    // MainPanel reference for using the card layout
+    private MainPanel mainP;
+
+    public UserPanel(MainPanel mainPIn)
+    {
+        mainP = mainPIn;
+
+        // create labels and confirmation buttons
+        JLabel confirm = new JLabel("Are you sure you want to reset your score?", JLabel.CENTER);
+        // force confirm label to take up a whole line
+        confirm.setPreferredSize(new Dimension(1000, 40));
+
+        JButton yes = new JButton("Yes");
+        JButton no = new JButton("No");
+
+        // use this class as an action listener
+        yes.addActionListener(this);
+        no.addActionListener(this);
+
+        // add to flow layout
+        add(confirm);
+        add(yes);
+        add(no);
+    }
+
+    // button clicked
+    public void actionPerformed(ActionEvent e)
+    {
+        // get the text of the button
+        String cmd = e.getActionCommand();
+
+        // clear the score if user clicked "Yes"
+        if (cmd.equals("Yes"))
+            mainP.score = 0;
+
+        // go back to home no matter what the user clicked
+        mainP.showCard("home");
+    }
+}
+
 // reset panel allows the user to confirm resetting the score
 class ResetPanel extends JPanel implements ActionListener
 {
@@ -269,11 +346,11 @@ class InstructionPanel extends JPanel implements ActionListener
         JTextArea textArea = new JTextArea(
             "The order of operations are:\n" +
             "    1. parenthesis ()\n" +
-            "    2. exponents (^)\n" +
-            "    3. multiplication and division (*, /)\n" +
-            "    4. addition and subtraction (+, -)\n\n" +
-            "For levels 1-10, calculate the correct answer by clicking on the operations in order\n" +
-            "For levels 11-20, drag the numbers and operations to create the desired number" + 
+            "    2. exponents ^\n" +
+            "    3. multiplication and division *, /\n" +
+            "    4. addition and subtraction +, -\n\n" +
+            "For levels 1-10, calculate the correct answer by clicking on the\noperations (+, -, *, or /) in order\n" +
+            "For levels 11-20, drag the numbers and operations to create the desired number\n\n" +
             "An easy way to remember the order of operations is by remembering PEMDAS", 20, 4);
         // use an larger arial font for the instructions
         textArea.setFont(mainP.arial);
@@ -544,12 +621,12 @@ class GamePanel extends JPanel
         try
         {
             player = ImageIO.read(new File("assets/person1.png"));
-//            player = new ImageIcon("assets/person1.gif").getImage();
+            //            player = new ImageIcon("assets/person1.gif").getImage();
             enemy = new ImageIcon("assets/monster.gif").getImage();
-//            enemy = ImageIO.read(new File("assets/monster.png"));
+            //            enemy = ImageIO.read(new File("assets/monster.png"));
             healthImage = ImageIO.read(new File("assets/hearts.png"));
             arrow = ImageIO.read(new File("assets/arrow.png"));
-            fireball = ImageIO.read(new File("assets/fireball.gif"));
+            fireball = new ImageIcon("assets/fireball.gif").getImage();
             fire = new ImageIcon("assets/fire.gif").getImage();
         }
         catch (IOException e)
@@ -683,7 +760,11 @@ class GamePanel extends JPanel
 
             // back goes back to levels screen
             if (cmd.equals("Back"))
+            {
                 mainP.showCard("levels");
+                // refresh padlock icons
+                refreshAll();
+            }
             // exit goes back to home screen
             else if (cmd.equals("Exit"))
                 mainP.showCard("home");
@@ -823,6 +904,8 @@ class GamePanel extends JPanel
         private double answer;
         // which frame the fireball is on while travelling (-1 for no fireball)
         private int fireballFrame;
+        // which frame the arrow is on while travelling (-1 for no arrow)
+        private int arrowFrame;
 
         public EarlyLevelPanel(MainPanel mainPIn)
         {
@@ -891,35 +974,49 @@ class GamePanel extends JPanel
             g.drawRect(520, 250, 106, 26);
             g.setColor(Color.RED);
             if (enemyHealth >= 0)
-            	// fill in from 0 to 100 according to enemyHealth percentage
-            	g.fillRect(523, 253, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
+                // fill in from 0 to 100 according to enemyHealth percentage
+                g.fillRect(523, 253, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
 
             // draw player health bar
-            g.drawImage(healthImage, 140, 230, 140 + (int)(health*90), 260, 0, 0, (int)(health*450), 150, this);
-            
+            g.drawImage(healthImage, 140, 230, 140 + (int)(health * 90), 260, 0, 0, (int)(health * 450), 150, this);
+
             // draw fireball
             if (fireballFrame > -1)
             {
-            	fireballFrame -= 30;
-            	
-            	g.drawImage(fireball, 200 + (240-fireballFrame), 300, 100, 100, this);
-            	
-            	// "hit" the enemy
-            	if (fireballFrame < 0)
-            	{
+                fireballFrame -= 15;
+
+                g.drawImage(fireball, 200 + (240 - fireballFrame), 300, 100, 100, this);
+
+                // "hit" the enemy
+                if (fireballFrame < 0)
+                {
                     enemyHealth--;
-                    
+
                     // special code to draw the fire death
                     if (enemyHealth == 0)
-                    	enemyHealth = -1;
-            	}
+                        enemyHealth = -1;
+                }
             }
-            
+
+            // draw arrow
+            if (arrowFrame > -1)
+            {
+                arrowFrame -= 20;
+
+                g.drawImage(arrow, 210 + arrowFrame, 300, 160, 20, this);
+            }
+
             // show fire death of enemy
             if (enemyHealth == -1)
-            	g.drawImage(fire, 500, 300, 150, 150, this);
-            
-            System.out.println("health: " + health);
+                g.drawImage(fire, 500, 300, 150, 150, this);
+
+            // die if ran out of health
+            if (health < 0.01)
+            {
+                refreshAll();
+                errorMsg = "You died! Try again";
+                health = 1;
+            }
         }
 
         // reset error message and field variables
@@ -949,6 +1046,7 @@ class GamePanel extends JPanel
             enemyHealth = maxEnemyHealth;
 
             fireballFrame = -1;
+            arrowFrame = -1;
         }
 
         // next level button clicked
@@ -994,17 +1092,17 @@ class GamePanel extends JPanel
                         if (question.length() <= 2)
                         {
                             // calculate score (cannot be negative)
-                            points = (int)Math.max(0, health * 100) * 10;
+                            points = (int) Math.max(0, health * 100) * 10;
                             // only add to score if this is their first time playing level
                             if (mainP.level == mainP.nextLevel)
                             {
                                 mainP.score += points;
                                 // unlock next level
                                 mainP.nextLevel++;
-
-                                // refresh padlock icons
-                                refreshAll();
                             }
+
+                            // reset health for next level
+                            health = 1;
 
                             // show next button to allow user to move onto next level
                             nextBtn.setVisible(true);
@@ -1019,9 +1117,12 @@ class GamePanel extends JPanel
                     }
                     else
                     {
-                        health -= 0.333;
                         // user incorrect
                         errorMsg = "Incorrect!";
+
+                        health -= 0.333;
+                        // release arrow to hit user
+                        arrowFrame = 150;
                     }
 
                     // clear textfield
@@ -1084,8 +1185,10 @@ class GamePanel extends JPanel
                     }
                     else if (question.indexOf("(") >= 0 && question.indexOf(")") >= 0)
                     {
-                    	// incorrect order
+                        // incorrect order
                         health -= 0.1666;
+                        // release arrow to hit user
+                        arrowFrame = 150;
                         errorMsg = "Do operations within first parenthesis first!";
                     }
                     else
@@ -1168,7 +1271,11 @@ class GamePanel extends JPanel
 
             // user got operation incorrect
             if (simpQuestion.length() == 0)
-            	health -= 0.1666;
+            {
+                health -= 0.1666;
+                // release arrow to hit user
+                arrowFrame = 150;
+            }
         }
 
 
@@ -1298,6 +1405,8 @@ class GamePanel extends JPanel
         private double curAnswer;
         // button to allow the user to move on to the next level
         private JButton nextBtn;
+        // draw instructions for late levels if true
+        private boolean drawInstructions;
 
         public LateLevelPanel()
         {
@@ -1319,6 +1428,8 @@ class GamePanel extends JPanel
                 '*',
                 '/'
             };
+
+            drawInstructions = true;
 
             // fonts used for drawing texts
             bigArial = new Font(Font.MONOSPACED, Font.PLAIN, 40);
@@ -1393,15 +1504,23 @@ class GamePanel extends JPanel
             for (int i = 0; i < sourceOps.length; i++)
             {
                 // draw number boxes
-                g.drawRect(190 + i * 100, 270, 40, 40);
+                g.drawRect(190 + i * 100, 170, 40, 40);
 
                 // use sourceLoc to draw sourceOps
-                g.drawString(sourceOps[i] + "", 200 + i * 100, 300);
+                g.drawString(sourceOps[i] + "", 200 + i * 100, 200);
             }
 
+            // draw operators in boxes
             g.setColor(Color.BLUE);
             if (op != ' ')
                 g.drawString(op + "", x, y);
+
+            // draw instructions
+            g.setFont(new Font("serif", Font.PLAIN, 10));
+            if (drawInstructions)
+            {
+                g.drawString("Number you're trying to get to", 500, 100);
+            }
         }
 
         // next level button clicked
@@ -1430,7 +1549,7 @@ class GamePanel extends JPanel
             for (int i = 0; i < sourceOps.length; i++)
             {
                 // check if one was clicked
-                if (curX > 200 + i * 100 - 10 && curX < 230 + i * 100 && curY > 270 && curY < 310)
+                if (curX > 200 + i * 100 - 10 && curX < 230 + i * 100 && curY > 170 && curY < 210)
                     // draw the operator that was clicked
                     op = sourceOps[i];
             }

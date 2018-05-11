@@ -9,3 +9,6 @@ http://www.pngmart.com/image/2936
 https://gifer.com/en/ZXHC
 https://gamejolt.com/games/axeplode/172864/devlog/new-pixel-art-and-animations-tsnu2bdu
 
+https://stackoverflow.com/questions/20165698/java-how-to-draw-a-border-around-an-undecorated-jframe
+https://stackoverflow.com/questions/22240328/how-to-draw-a-gif-animation-in-java
+://stackoverflow.com/questions/4801386/how-do-i-add-an-image-to-a-jbutton
