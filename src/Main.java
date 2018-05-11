@@ -101,7 +101,7 @@ class MainPanel extends JPanel
         nextLevel = 11;
         // starts at 0 score
         score = 0;
-        player = new String[10][2];
+        players = new String[10][2];
 
         gamePanel = new GamePanel(this);
         arial = new Font("Arial", Font.PLAIN, 20);
@@ -148,7 +148,7 @@ class MainPanel extends JPanel
             System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
         }
 
-        players = allText.split("\n");
+        //players = allText.split("\n");
     }
 }
 
@@ -880,7 +880,8 @@ class GamePanel extends JPanel
 
 
     // game view for levels 1-10
-    class EarlyLevelPanel extends JPanel implements KeyListener, ActionListener, MouseListener
+    class EarlyLevelPanel extends JPanel implements KeyListener, ActionListener, MouseListener, MouseMotionListener
+
     {
         // main panel reference
         private MainPanel mainP;
@@ -906,6 +907,8 @@ class GamePanel extends JPanel
         private int fireballFrame;
         // which frame the arrow is on while travelling (-1 for no arrow)
         private int arrowFrame;
+        // position of blue box to show which operator the user is hovering over
+        private int hoverPos;
 
         public EarlyLevelPanel(MainPanel mainPIn)
         {
@@ -936,6 +939,7 @@ class GamePanel extends JPanel
             reset();
 
             addMouseListener(this);
+            addMouseMotionListener(this);
 
             add(answerField);
             add(nextBtn);
@@ -964,6 +968,11 @@ class GamePanel extends JPanel
             {
                 g.drawRect(48 + boxPos * 24, 40, boxSize * 24, 40);
             }
+
+            // draw hoverPos if non negative
+            g.setColor(Color.BLUE);
+            if (hoverPos >= 0)
+                g.drawRect(48 + hoverPos * 24, 40, 24, 40);
 
             // draw player and enemy
             g.drawImage(player, 100, 250, 150, 225, this);
@@ -1022,7 +1031,7 @@ class GamePanel extends JPanel
         // reset error message and field variables
         public void reset()
         {
-            errorMsg = "Click an operation to start solving and press enter in the text field";
+            errorMsg = "Click an operation to start solving";
 
             // currect question the user is solving
             question = questions[mainP.level - 1];
@@ -1033,6 +1042,7 @@ class GamePanel extends JPanel
 
             boxPos = -1;
             boxSize = -1;
+            hoverPos = -1;
 
             // 1 million should never be the correct answer
             answer = 1000000;
@@ -1209,6 +1219,27 @@ class GamePanel extends JPanel
         {}
         public void mouseExited(MouseEvent e)
         {}
+
+        public void mouseDragged(MouseEvent e) {}
+        public void mouseMoved(MouseEvent e)
+        {
+            // mouse x and y positions
+            int x = e.getX();
+            int y = e.getY();
+            // index of character user clicked on within string
+            int index = (x - 50) / 24;
+
+            // player clicked on a character within the string
+            if (y > 45 && y < 70 && index >= 0 && index < question.length())
+            {
+                System.out.println(question.charAt(hoverPos));
+                if ("+-/*".indexOf(question.charAt(hoverPos)) >= 0)
+                {
+                    hoverPos = index;
+                }
+            } else
+                hoverPos = -1;
+        }
 
         // checks whether op is the correct operator to calculate in str
         // set simpQuestion to simplified question, set answer to answer of
