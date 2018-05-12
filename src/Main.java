@@ -13,6 +13,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.synth.SynthSeparatorUI;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -24,6 +26,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 
 // Main class containing main method which is first ran
@@ -82,8 +85,10 @@ class MainPanel extends JPanel
     protected int score;
     // levelsPanel reference for padlock refresh
     protected LevelsPanel levelsPanel;
-    // names and score of players
-    protected String[][] players;
+    // complete panel reference for score refreshing
+    protected CompletePanel completePanel;
+    // high score panel reference for high score refreshing
+    protected HighScorePanel highScorePanel;
 
     // initialize panel
     public MainPanel()
@@ -98,21 +103,23 @@ class MainPanel extends JPanel
         level = 1;
         // only level 1 is unlocked
         // TODO: change this
-        nextLevel = 11;
+        nextLevel = 19;
         // starts at 0 score
         score = 0;
-        players = new String[10][2];
 
         gamePanel = new GamePanel(this);
         arial = new Font("Arial", Font.PLAIN, 20);
         levelsPanel = new LevelsPanel(this);
+        highScorePanel = new HighScorePanel(this);
+        completePanel = new CompletePanel(this);
 
         // add 2 panels, home and instructions
         add(new HomePanel(this), "home");
         add(new InstructionPanel(this), "instructions");
         add(levelsPanel, "levels");
-        add(new HighScorePanel(this), "highScore");
+        add(highScorePanel, "highScore");
         add(new ResetPanel(this), "reset");
+        add(completePanel, "complete");
         add(gamePanel, "game");
     }
 
@@ -121,34 +128,6 @@ class MainPanel extends JPanel
     public void showCard(String name)
     {
         cards.show(this, name);
-    }
-
-    
-    // load player high/current score data from file
-    public void loadPlayers()
-    {
-        // load file with high score data
-        File highScoreFile = new File("highScore.txt");
-        Scanner highScoreScanner;
-        // the text in the high score file
-        String allText = "";
-
-        try
-        {
-            // initialize the scanner with the high score file
-            highScoreScanner = new Scanner(highScoreFile);
-
-            // read all the lines into allText
-            while (highScoreScanner.hasNext())
-                allText += highScoreScanner.nextLine() + "\n";
-        }
-        catch (FileNotFoundException e)
-        {
-            // tell the user if error
-            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
-        }
-
-        //players = allText.split("\n");
     }
 }
 
@@ -243,45 +222,159 @@ class HomePanel extends JPanel
 }
 
 
-class UserPanel extends JPanel implements ActionListener
+// when the user finishes the game, enter their name into the high score file
+class CompletePanel extends JPanel implements ActionListener
 {
     // MainPanel reference for using the card layout
     private MainPanel mainP;
+    // congratulate user for finishing game
+    private JLabel congrats;
+    // name input
+    private JTextField nameField;
+    // to display high score
+    private JTextArea highScore;
+    private File highScoreFile;
 
-    public UserPanel(MainPanel mainPIn)
+    public CompletePanel(MainPanel mainPIn)
     {
+    	setLayout(new FlowLayout(FlowLayout.CENTER, 400, 10));
+    	
         mainP = mainPIn;
+        highScoreFile = new File("highScore.txt");
 
-        // create labels and confirmation buttons
-        JLabel confirm = new JLabel("Are you sure you want to reset your score?", JLabel.CENTER);
-        // force confirm label to take up a whole line
-        confirm.setPreferredSize(new Dimension(1000, 40));
-
-        JButton yes = new JButton("Yes");
-        JButton no = new JButton("No");
-
+        // create label and name input
+        congrats = new JLabel("Congratulations! You finished with " + mainP.score + " points. Enter your name", JLabel.CENTER);
+        nameField = new JTextField(10);
         // use this class as an action listener
-        yes.addActionListener(this);
-        no.addActionListener(this);
+        nameField.addActionListener(new NameFieldHandler());
+        
+        // text area to display high scores
+        highScore = new JTextArea(10, 15);
+        highScore.setEditable(false);
+        
+        // exit button to go back to home screen
+        JButton exit = new JButton("Exit");
+        exit.addActionListener(this);
+        
+        refresh();
 
         // add to flow layout
-        add(confirm);
-        add(yes);
-        add(no);
+        add(congrats);
+        add(nameField);
+        add(highScore);
+        add(exit);
+    }
+    
+    class NameFieldHandler implements ActionListener
+    {
+    	public NameFieldHandler() {}
+
+		public void actionPerformed(ActionEvent e) {
+			String text = e.getActionCommand();
+			
+			nameField.setEnabled(false);
+			
+			addPlayer(text + " - " + mainP.score);
+			refresh();
+		}
+    	
+    }
+    
+    // refresh the high score contents
+    public void refresh()
+    {
+    	// set high score text to string (joined by newline) loaded from file
+    	highScore.setText(String.join("\n", loadPlayers()));
+    	// congratulate user with however many points they got
+    	congrats.setText("Congratulations! You finished with " + mainP.score + " points. Enter your name");
+    	// refresh the home page's high score panel
+    	mainP.highScorePanel.refresh();
     }
 
     // button clicked
     public void actionPerformed(ActionEvent e)
     {
-        // get the text of the button
-        String cmd = e.getActionCommand();
-
-        // clear the score if user clicked "Yes"
-        if (cmd.equals("Yes"))
-            mainP.score = 0;
-
-        // go back to home no matter what the user clicked
+        // go back to home screen
         mainP.showCard("home");
+        
+    }
+
+    
+    // load player high/current score data from file
+    public String[] loadPlayers()
+    {
+        Scanner highScoreScanner;
+        // the text in the high score file
+        String allText = "";
+
+        try
+        {
+            // initialize the scanner with the high score file
+            highScoreScanner = new Scanner(highScoreFile);
+
+            // read all the lines into allText
+            while (highScoreScanner.hasNext())
+                allText += highScoreScanner.nextLine() + "\n";
+            
+            highScoreScanner.close();
+        }
+        catch (FileNotFoundException e)
+        {
+            // tell the user if error
+            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+        }
+        
+
+        return allText.split("\n");
+    }
+    
+    
+    // adds a player name and high score to the file
+    public void addPlayer(String nameAndScore)
+    {
+    	PrintWriter writer;
+    	String[] highScores = loadPlayers();
+    	// inserted score already, no need to do it again
+    	boolean inserted = false;
+    	
+    	try
+    	{
+    		writer = new PrintWriter(highScoreFile);
+    		
+    		// add nameAndScore to current high scores by inserting the score once less than the highest
+        	for (int i = 0; i < highScores.length; i++)
+        	{
+        		if (getScore(highScores[i]) < getScore(nameAndScore) && !inserted)
+        		{
+        			// write new score to file
+        			writer.println(nameAndScore);
+        			inserted = true;
+        		}
+        		
+        		// write score to file
+        		writer.println(highScores[i]);
+        	}
+        	
+        	// write at the end if not written yet
+        	if (!inserted)
+        	{
+    			writer.println(nameAndScore);
+        	}
+        	
+        	writer.close();
+    	} catch (IOException e) {
+            // tell the user if error
+            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to write to\n\n\n");
+		}
+    }
+    
+    // get the score (an integer) from the name and score string ("bob - 3000")
+    public int getScore(String nameAndScore)
+    {
+    	int split = nameAndScore.indexOf(" - ") + 3;
+    	String substring = nameAndScore.substring(split, nameAndScore.length()); 
+    	
+    	return Integer.parseInt(substring);
     }
 }
 
@@ -348,10 +441,11 @@ class InstructionPanel extends JPanel implements ActionListener
             "    1. parenthesis ()\n" +
             "    2. exponents ^\n" +
             "    3. multiplication and division *, /\n" +
-            "    4. addition and subtraction +, -\n\n" +
+            "    4. addition and subtraction +, -\n" + 
+            "An easy way to remember the order of operations is by remembering PEMDAS\n\n" +
             "For levels 1-10, calculate the correct answer by clicking on the\noperations (+, -, *, or /) in order\n" +
-            "For levels 11-20, drag the numbers and operations to create the desired number\n\n" +
-            "An easy way to remember the order of operations is by remembering PEMDAS", 20, 4);
+            "For levels 11-20, drag operations from the black boxes to the blue boxes\n" +
+            "to make the \"current answer\" match \"expected answer\"", 20, 4);
         // use an larger arial font for the instructions
         textArea.setFont(mainP.arial);
         textArea.setEditable(false);
@@ -522,37 +616,18 @@ class HighScorePanel extends JPanel implements ActionListener
 {
     // MainPanel reference for using the card layout
     private MainPanel mainP;
+    // high score text 
+    private JTextArea textArea;
 
     public HighScorePanel(MainPanel mainPIn)
     {
         mainP = mainPIn;
 
-        // borderlayout for the butotn
+        // border layout for the button
         setLayout(new BorderLayout(20, 20));
-
-        // load file with high score data
-        File highScoreFile = new File("highScore.txt");
-        Scanner highScoreScanner;
-        // the text in the high score file
-        String allText = "";
-
-        try
-        {
-            // initialize the scanner with the high score file
-            highScoreScanner = new Scanner(highScoreFile);
-
-            // read all the lines into allText
-            while (highScoreScanner.hasNext())
-                allText += highScoreScanner.nextLine() + "\n";
-        }
-        catch (FileNotFoundException e)
-        {
-            // tell the user if error
-            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
-        }
-
+        
         // make high score text area with allText
-        JTextArea textArea = new JTextArea(allText, 20, 4);
+        textArea = new JTextArea("", 20, 4);
         textArea.setFont(mainP.arial);
         // don't let the user edit!
         textArea.setEditable(false);
@@ -561,6 +636,8 @@ class HighScorePanel extends JPanel implements ActionListener
         JButton back = new JButton("Back");
         back.addActionListener(this);
 
+        refresh();
+        
         // add to border layout
         add(back, BorderLayout.NORTH);
         add(textArea, BorderLayout.CENTER);
@@ -575,6 +652,32 @@ class HighScorePanel extends JPanel implements ActionListener
         // go back to home
         if (cmd.equals("Back"))
             mainP.showCard("home");
+    }
+    
+    // refresh high scores by loading them from the file
+    public void refresh() {
+    	// load file with high score data
+        File highScoreFile = new File("highScore.txt");
+        Scanner highScoreScanner;
+        // the text in the high score file
+        String allText = "";
+
+        try
+        {
+            // initialize the scanner with the high score file
+            highScoreScanner = new Scanner(highScoreFile);
+
+            // read all the lines into allText
+            while (highScoreScanner.hasNext())
+                allText += highScoreScanner.nextLine() + "\n";
+            
+            textArea.setText(allText);
+        }
+        catch (FileNotFoundException e)
+        {
+            // tell the user if error
+            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+        }
     }
 }
 
@@ -1010,7 +1113,7 @@ class GamePanel extends JPanel
             // draw arrow
             if (arrowFrame > -1)
             {
-                arrowFrame -= 20;
+                arrowFrame -= 30;
 
                 g.drawImage(arrow, 210 + arrowFrame, 300, 160, 20, this);
             }
@@ -1122,7 +1225,7 @@ class GamePanel extends JPanel
                         }
                         else
                         {
-                            errorMsg = "Correct! Click on another operator";
+                            errorMsg = "Correct! Click on another operation";
                         }
                     }
                     else
@@ -1132,7 +1235,7 @@ class GamePanel extends JPanel
 
                         health -= 0.333;
                         // release arrow to hit user
-                        arrowFrame = 150;
+                        arrowFrame = 200;
                     }
 
                     // clear textfield
@@ -1198,7 +1301,7 @@ class GamePanel extends JPanel
                         // incorrect order
                         health -= 0.1666;
                         // release arrow to hit user
-                        arrowFrame = 150;
+                        arrowFrame = 200;
                         errorMsg = "Do operations within first parenthesis first!";
                     }
                     else
@@ -1229,15 +1332,10 @@ class GamePanel extends JPanel
             // index of character user clicked on within string
             int index = (x - 50) / 24;
 
-            // player clicked on a character within the string
-            if (y > 45 && y < 70 && index >= 0 && index < question.length())
-            {
-                System.out.println(question.charAt(hoverPos));
-                if ("+-/*".indexOf(question.charAt(hoverPos)) >= 0)
-                {
-                    hoverPos = index;
-                }
-            } else
+            // player clicked on a character within the string and is a valid operator
+            if (y > 45 && y < 70 && index >= 0 && index < question.length() && "+-/*".indexOf(question.charAt(index)) >= 0)
+                hoverPos = index;
+            else
                 hoverPos = -1;
         }
 
@@ -1305,7 +1403,7 @@ class GamePanel extends JPanel
             {
                 health -= 0.1666;
                 // release arrow to hit user
-                arrowFrame = 150;
+                arrowFrame = 200;
             }
         }
 
@@ -1499,6 +1597,13 @@ class GamePanel extends JPanel
             tries = 0;
 
             nextBtn.setVisible(false);
+            
+            System.out.println(mainP.level);
+            System.out.println(questions.length + opQuestions.length);
+            if (mainP.level == questions.length + opQuestions.length)
+            {
+            	nextBtn.setText("Finish game!");
+            }
         }
 
 
@@ -1546,12 +1651,11 @@ class GamePanel extends JPanel
             if (op != ' ')
                 g.drawString(op + "", x, y);
 
-            // draw instructions
-            g.setFont(new Font("serif", Font.PLAIN, 10));
-            if (drawInstructions)
-            {
-                g.drawString("Number you're trying to get to", 500, 100);
-            }
+            // draw labels
+            g.setFont(new Font("serif", Font.PLAIN, 15));
+            g.setColor(Color.BLACK);
+            g.drawString("Expected answer", 550, 30);
+            g.drawString("Current answer", 550, 85);
         }
 
         // next level button clicked
@@ -1559,9 +1663,17 @@ class GamePanel extends JPanel
         {
             // go the next level
             mainP.level++;
-
-            // repaint gamePanel
-            refreshAll();
+            
+            // if finished with game, show complete game panel for high score
+            if (mainP.level > questions.length + opQuestions.length)
+            {
+            	mainP.showCard("complete");
+            	mainP.completePanel.refresh();
+            } else
+            {
+	            // repaint gamePanel
+	            refreshAll();
+            }
         }
 
         public void mouseClicked(MouseEvent e)

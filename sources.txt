@@ -11,4 +11,6 @@ https://gamejolt.com/games/axeplode/172864/devlog/new-pixel-art-and-animations-t
 
 https://stackoverflow.com/questions/20165698/java-how-to-draw-a-border-around-an-undecorated-jframe
 https://stackoverflow.com/questions/22240328/how-to-draw-a-gif-animation-in-java
-://stackoverflow.com/questions/4801386/how-do-i-add-an-image-to-a-jbutton
+https://stackoverflow.com/questions/4801386/how-do-i-add-an-image-to-a-jbutton
+https://stackoverflow.com/questions/1978933/a-quick-and-easy-way-to-join-array-elements-with-a-separator-the-opposite-of-sp
+https://stackoverflow.com/questions/11496700/how-to-use-printwriter-and-file-classes-in-java
