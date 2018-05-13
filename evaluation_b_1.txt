@@ -1,0 +1,17 @@
+Operators, 4/29/2018 Jason Chen
+
+progress:
+finished first level easily and started on the second level. He earned the full 1000 points for the first level, as he did not make any mistakes.
+
+emotional response:
+Jason was not very excited about the game. He clicked through the menu and levels nonchalantly and finished the math question quite easily. Jason was a little frustrated and confused with the first level, as he did not know what "Click on an operator" meant
+
+physical behavior:
+he did not behave abnormally or in a particular manner
+
+3a.
+The user was not very excited to play the game. I believe this is due to a lack of colorful graphics. He was confused on the gameplay page as to what "Click on an operator" meant. I would make it more clear that this game was about the order of operations and require users to walk through the instructions before playing. I will also add colorful graphics.
+
+3b.
+The user appeared to learn from the helpful error messages I provided. I will add more error messages for more types of mathematical errors (negative sign before parenthesis applies to all numbers in the parenthesis, etc).
+

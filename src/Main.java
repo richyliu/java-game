@@ -283,8 +283,9 @@ class CompletePanel extends JPanel implements ActionListener
     // refresh the high score contents
     public void refresh()
     {
+        // TODO: doesn't work on mac for some reason
     	// set high score text to string (joined by newline) loaded from file
-    	highScore.setText(String.join("\n", loadPlayers()));
+    	//highScore.setText(String.join("\n", loadPlayers()));
     	// congratulate user with however many points they got
     	congrats.setText("Congratulations! You finished with " + mainP.score + " points. Enter your name");
     	// refresh the home page's high score panel
@@ -899,12 +900,26 @@ class GamePanel extends JPanel
                 g.setColor(Color.BLACK);
 
                 // draw rectangles corresponding to the level the user is on
-                for (int i = 0; i < mainP.level; i++)
+                for (int i = 0; i < questions.length + opQuestions.length; i++)
                 {
-                    g.fillRect(i * 25, 0, 23, 25);
+                    // draw rectangle if level is completed
+                    if (i < mainP.level)
+                    {
+                        g.setColor(Color.BLACK);
+                        g.fillRect(i * 25, 0, 23, 25);
+                        // color for number
+                        g.setColor(Color.WHITE);
+                    } else
+                    {
+                        // color for number
+                        g.setColor(Color.BLACK);
+                    }
+                    // draw number for the level
+                    g.drawString(i+1+"", i*25+5, 15);
                 }
 
                 // draw the score
+                g.setColor(Color.RED);
                 g.drawString(mainP.score + "", 520, 15);
             }
         }
@@ -1134,7 +1149,7 @@ class GamePanel extends JPanel
         // reset error message and field variables
         public void reset()
         {
-            errorMsg = "Click an operation to start solving";
+            errorMsg = "Click an operator to start solving and press enter to continue";
 
             // currect question the user is solving
             question = questions[mainP.level - 1];
@@ -1291,8 +1306,6 @@ class GamePanel extends JPanel
                         // calc by subtracting the index of the start of substring
                         insideIndex = index - question.indexOf("(") - 1;
 
-                        System.out.println("inside: " + inside);
-                        System.out.println("insideIndex: " + insideIndex);
                         // inside of parens
                         orderOfOps(operation, insideIndex, inside, question.indexOf("(") + 1);
                     }
@@ -1302,7 +1315,7 @@ class GamePanel extends JPanel
                         health -= 0.1666;
                         // release arrow to hit user
                         arrowFrame = 200;
-                        errorMsg = "Do operations within first parenthesis first!";
+                        errorMsg = "Do operators within first parenthesis first!";
                     }
                     else
                     {
@@ -1446,18 +1459,9 @@ class GamePanel extends JPanel
 
             // part of the problem the user is currently solving
             String problem = str.substring(start, end);
-            System.out.println("start: " + start);
-            System.out.println("end: " + end);
-            System.out.println("problem: " + problem);
-            System.out.println("str: " + str);
-
 
             // user solver function above in GamePanel
             answer = solve(problem);
-
-            System.out.println("question: " + question);
-            System.out.println("index: " + index);
-            System.out.println("offset: " + offset);
 
             // draw the box
             boxPos = offset + start;
@@ -1483,8 +1487,6 @@ class GamePanel extends JPanel
                 simpQuestion = question;
             }
 
-            System.out.println("simpQuestion (1): " + simpQuestion);
-            // TODO: same problem (4 + 2 + (4 + 2)) will not work with this simple replace
             // if not floating point number
             if (answer - (int) answer == 0)
                 // show as int
@@ -1496,7 +1498,6 @@ class GamePanel extends JPanel
             else
                 // show with decimal point
                 simpQuestion = simpQuestion.replace(problem, answer + "");
-            System.out.println("simpQuestion (2): " + simpQuestion);
 
 
             // move the answerfield
@@ -1524,8 +1525,6 @@ class GamePanel extends JPanel
         private char[] sourceOps;
         // useful fonts for drawing texts
         private Font bigArial;
-        // how many times the user attempted to solve the problem
-        private int tries;
         // currect question the user is solving
         private int[] question;
         // answer user should try to get to by putting operators
@@ -1536,6 +1535,10 @@ class GamePanel extends JPanel
         private JButton nextBtn;
         // draw instructions for late levels if true
         private boolean drawInstructions;
+        // which frame the fireball is on while travelling (0 for no fireball)
+        private int fireballFrame;
+        // which frame the arrow is on while travelling (-1 for no arrow)
+        private int arrowFrame;
 
         public LateLevelPanel()
         {
@@ -1594,16 +1597,20 @@ class GamePanel extends JPanel
                 ' '
             };
             curAnswer = 0;
-            tries = 0;
 
             nextBtn.setVisible(false);
             
-            System.out.println(mainP.level);
-            System.out.println(questions.length + opQuestions.length);
             if (mainP.level == questions.length + opQuestions.length)
             {
             	nextBtn.setText("Finish game!");
             }
+
+            maxEnemyHealth = 1;
+            enemyHealth = 1;
+            health = 1;
+
+            fireballFrame = -1;
+            arrowFrame = -1;
         }
 
 
@@ -1633,8 +1640,8 @@ class GamePanel extends JPanel
             // draw answer
             g.drawString(answer + "", 550, 70);
 
-            // draw equal sign and user's answer
-            g.drawString("= " + curAnswer, 500, 120);
+            // draw equal sign and user's answer, truncated to 3rd decimal place
+            g.drawString("= " + Math.round(curAnswer*1000)/1000.0, 500, 120);
 
             // draw source operators
             for (int i = 0; i < sourceOps.length; i++)
@@ -1656,6 +1663,65 @@ class GamePanel extends JPanel
             g.setColor(Color.BLACK);
             g.drawString("Expected answer", 550, 30);
             g.drawString("Current answer", 550, 85);
+
+            // draw instructions
+            if (drawInstructions)
+            {
+                g.drawString("Draw an operator from the black box to the blue box to make current match expected answer", 50, 250);
+            }
+
+
+            // draw player and enemy
+            g.drawImage(player, 100, 300, 150, 225, this);
+            g.drawImage(enemy, 500, 350, 150, 150, this);
+
+            // draw enemy health bar
+            g.setColor(Color.BLACK);
+            g.drawRect(520, 300, 106, 26);
+            g.setColor(Color.RED);
+            if (enemyHealth >= 0)
+                // fill in from 0 to 100 according to enemyHealth percentage
+                g.fillRect(523, 303, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
+
+            // draw player health bar
+            g.drawImage(healthImage, 140, 280, 140 + (int)(health * 90), 310, 0, 0, (int)(health * 450), 150, this);
+
+            // draw fireball
+            if (fireballFrame > -1)
+            {
+                fireballFrame -= 15;
+
+                g.drawImage(fireball, 200 + (240 - fireballFrame), 350, 100, 100, this);
+
+                // "hit" the enemy
+                if (fireballFrame < 0)
+                {
+                    // special code to draw the fire death
+                    enemyHealth = -1;
+                }
+            }
+
+            // draw arrow
+            if (arrowFrame > -1)
+            {
+                arrowFrame -= 30;
+
+                g.drawImage(arrow, 210 + arrowFrame, 350, 160, 20, this);
+
+                if (arrowFrame < 0)
+                    health -= 0.08333;
+            }
+
+            // show fire death of enemy
+            if (enemyHealth == -1)
+                g.drawImage(fire, 500, 350, 150, 150, this);
+
+            // die if ran out of health
+            if (health < 0.01)
+            {
+                refreshAll();
+                health = 1;
+            }
         }
 
         // next level button clicked
@@ -1761,8 +1827,12 @@ class GamePanel extends JPanel
                 // user got correct, move onto next level
                 if (answer == curAnswer)
                 {
+                    // hit enemy
+                    fireballFrame = 240;
+                    repaint();
+
                     // calculate score (cannot be negative)
-                    points = Math.max(0, (10 - tries) * 100);
+                    points = (int) Math.max(0, health * 100) * 10;
 
                     // only add to score if this is their first time playing level
                     if (mainP.level == mainP.nextLevel)
@@ -1776,10 +1846,11 @@ class GamePanel extends JPanel
                     }
 
                     nextBtn.setVisible(true);
-                    // incorrect, add to tries
+                } else
+                {
+                    // user got incorrect, health decrease
+                    arrowFrame = 200;
                 }
-                else
-                    tries++;
             }
 
             repaint();

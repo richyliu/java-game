@@ -1,0 +1,17 @@
+Operators, 5/12 Darren Yee 6th grade
+
+2.
+emotional responses:
+darren was really happy when he finished the level because of the fireball animation that killed the enemy
+
+physical behavior:
+not much happened
+
+progress of the game:
+Darren finished one level with full 1000 points and the other level with 800 points due to a mistake in the order of operations
+
+3a.
+the gameplay went quite smoothly. Darren was a little bit confused at the level screen because he didn't know what it meant by "click on the operations". He was content after finishing the level because the fireball killed the enemy. I would make it more clear that  the user is supposed to click the operators (+, -, *, or /)
+
+3b.
+The user learned about the order of operations from the helpful error messages I gave. They were also eager to play due to the nice animations.
