@@ -5,7 +5,14 @@
  * Operators game
  * 
  * General overview:
- * 
+ * The user starts off on the home panel. From there they can view the levels panel, high score, instructions, or reset.
+ * High score panel allows them to view the past high scores. The instructions panel tells the user what to do on the
+ * levels. The user can also reset the score if they choose to do so. From the levels panel they can select different
+ * levels (currently out of 20, but easily changable). The first 10 are easy levels; the user only has to click on
+ * operators in the correct order to solve the problem. They are represented by an player which shoots fireballs to
+ * destroy the enemy. In the last 10 levels, the user has to drag operators to the correct location in order to make
+ * the desired level. They lose health according to the number of times the tried. Once they finished all 20 levels,
+ * they can enter in their score into the high score file.
  */
 
 
