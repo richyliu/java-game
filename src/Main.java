@@ -136,7 +136,7 @@ class MainPanel extends JPanel
         level = 1;
         // only level 1 is unlocked
         // TODO: change this
-        nextLevel = 1;
+        nextLevel = 20;
         // starts at 0 score
         score = 0;
 
@@ -299,7 +299,7 @@ class CompletePanel extends JPanel implements ActionListener
         setLayout(new FlowLayout(FlowLayout.CENTER, 400, 10));
 
         mainP = mainPIn;
-        highScoreFile = new File("highScore.txt");
+        highScoreFile = new File("assets/highScore.txt");
 
         // create label and name input
         congrats = new JLabel("Congratulations! You finished with " + mainP.score + " points. Enter your name", JLabel.CENTER);
@@ -344,9 +344,15 @@ class CompletePanel extends JPanel implements ActionListener
     // refresh the high score contents
     public void refresh()
     {
-        // TODO: doesn't work on mac for some reason
+        // load players high scores and join by newline
+        String highScores = "";
+        String[] players = loadPlayers();
+        for (int i = 0; i < players.length; i++)
+            highScores += players[i] + "\n";
+
+
         // set high score text to string (joined by newline) loaded from file
-        highScore.setText(String.join("\n", loadPlayers()));
+        highScore.setText(highScores);
         // congratulate user with however many points they got
         congrats.setText("Congratulations! You finished with " + mainP.score + " points. Enter your name");
         // refresh the home page's high score panel
@@ -383,7 +389,7 @@ class CompletePanel extends JPanel implements ActionListener
         catch (FileNotFoundException e)
         {
             // tell the user if error
-            System.out.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open assets/highScore.txt file to read\n\n\n");
         }
 
 
@@ -428,7 +434,7 @@ class CompletePanel extends JPanel implements ActionListener
         catch (IOException e)
         {
             // tell the user if error
-            System.out.println("\n\nERROR: Cannot find/open highScore.txt file to write to\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open assets/highScore.txt file to write to\n\n\n");
         }
     }
 
@@ -499,17 +505,30 @@ class InstructionPanel extends JPanel implements ActionListener
         // use a border layout for the button in the north
         setLayout(new BorderLayout(20, 20));
 
-        // text area containing instructions text
-        JTextArea textArea = new JTextArea(
-            "The order of operations are:\n" +
-            "    1. parenthesis ()\n" +
-            "    2. exponents ^\n" +
-            "    3. multiplication and division *, /\n" +
-            "    4. addition and subtraction +, -\n" +
-            "An easy way to remember the order of operations is by remembering PEMDAS\n\n" +
-            "For levels 1-10, calculate the correct answer by clicking on the\noperations (+, -, *, or /) in order\n" +
-            "For levels 11-20, drag operations from the black boxes to the blue boxes\n" +
-            "to make the \"current answer\" match \"expected answer\"", 20, 4);
+        // load instructions
+        Scanner reader;
+        // the text in the instructions file
+        String allText = "";
+
+        try
+        {
+            // initialize the scanner with the instructions file
+            reader = new Scanner(new File("assets/instructions.txt"));
+
+            // read all the lines into allText
+            while (reader.hasNext())
+                allText += reader.nextLine() + "\n";
+
+            reader.close();
+        }
+        catch (FileNotFoundException e)
+        {
+            // tell the user if error
+            System.out.println("\n\nERROR: Cannot find/open assets/instructions.txt file to read\n\n\n");
+        }
+
+        // text area containing instructions text loaded from file
+        JTextArea textArea = new JTextArea(allText, 20, 4);
         // use an larger arial font for the instructions
         textArea.setFont(mainP.arial);
         textArea.setEditable(false);
@@ -722,7 +741,7 @@ class HighScorePanel extends JPanel implements ActionListener
     public void refresh()
     {
         // load file with high score data
-        File highScoreFile = new File("highScore.txt");
+        File highScoreFile = new File("assets/highScore.txt");
         Scanner highScoreScanner;
         // the text in the high score file
         String allText = "";
@@ -741,7 +760,7 @@ class HighScorePanel extends JPanel implements ActionListener
         catch (FileNotFoundException e)
         {
             // tell the user if error
-            System.out.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open assets/highScore.txt file to read\n\n\n");
         }
     }
 }
@@ -806,12 +825,12 @@ class GamePanel extends JPanel
         // NOTE: questions must have space between operators and on the outside of parenthesis
         // questions must NOT have nested parenthesis
         // questions must contain 1 or 2 digit numbers only
-        // questions.txt must contain 10 lines of the above questions
+        // assets/questions.txt must contain 10 lines of the above questions
         // it must also contain 10 lines of fill in the operator questions
         // 4 numbers are separated by commas and the expected answer is also separated by a comma
 
         // load the questions from a file
-        File f = new File("questions.txt");
+        File f = new File("assets/questions.txt");
         // read text into array
         String allText = "";
         // try to get the scanner
@@ -840,7 +859,7 @@ class GamePanel extends JPanel
         }
         catch (FileNotFoundException e)
         {
-            System.out.println("\n\nERROR: Cannot find/open questions.txt file to read\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open assets/questions.txt file to read\n\n\n");
         }
 
         health = 1;
@@ -870,26 +889,19 @@ class GamePanel extends JPanel
     {
         // solve a math problem using "js" ScriptEngine
         ScriptEngine solver = new ScriptEngineManager().getEngineByName("js");
+        double answer = 1000000;
 
         try
         {
-            // TODO: only use first one
             // try to get the answer to the problem using "js" eval
-            try
-            {
-                return (double) solver.eval(question);
-            }
-            catch (ClassCastException ex)
-            {
-                return (double)((Integer) solver.eval(question));
-            }
+            answer = (double) solver.eval(question);
         }
         catch (ScriptException e)
         {
             System.out.println(question + " is badly formatted!");
-            // error return
-            return 1000000;
         }
+
+        return answer;
     }
 
     // has the back and pause buttons
@@ -1704,8 +1716,8 @@ class GamePanel extends JPanel
             g.setColor(Color.BLACK);
             // draw numbers
             for (int i = 0; i < question.length; i++)
-                // draw the operators spaced 100px starting from 150px
-                g.drawString(question[i] + "", 150 + i * 100, 120);
+                // draw the operators spaced 100px starting from 140px
+                g.drawString(question[i] + "", 140 + i * 100, 120);
 
             // draw answer
             g.drawString(answer + "", 550, 70);
