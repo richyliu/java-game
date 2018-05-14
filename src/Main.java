@@ -8,7 +8,7 @@
  * The user starts off on the home panel. From there they can view the levels panel, high score, instructions, or reset.
  * High score panel allows them to view the past high scores. The instructions panel tells the user what to do on the
  * levels. The user can also reset the score if they choose to do so. From the levels panel they can select different
- * levels (currently out of 20, but easily changable). The first 10 are easy levels; the user only has to click on
+ * levels (currently out of 20, but easily changeable). The first 10 are easy levels; the user only has to click on
  * operators in the correct order to solve the problem. They are represented by an player which shoots fireballs to
  * destroy the enemy. In the last 10 levels, the user has to drag operators to the correct location in order to make
  * the desired level. They lose health according to the number of times the tried. Once they finished all 20 levels,
@@ -16,24 +16,52 @@
  */
 
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.plaf.synth.SynthSeparatorUI;
-
+// common layouts
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+// for drawing
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Font;
+// for null/strict flow layouts
+import java.awt.Dimension;
+// events for buttons, text fields, mouse
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+// for reading files
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
-import java.util.Arrays;
 import javax.imageio.ImageIO;
-
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-
+// for writing files
 import java.io.IOException;
 import java.io.PrintWriter;
+
+// for "js" eval of math equations
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+// for 10px margin around the whole game screen
+import javax.swing.BorderFactory;
+// for padlock icon on top of levels
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+// components
+import java.awt.Component;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 
 // Main class containing main method which is first ran
@@ -41,8 +69,6 @@ public class Main
 {
     public static void main(String[] args)
     {
-        System.out.println("\n\n\n");
-
         Main main = new Main();
         main.run();
     }
@@ -110,7 +136,7 @@ class MainPanel extends JPanel
         level = 1;
         // only level 1 is unlocked
         // TODO: change this
-        nextLevel = 19;
+        nextLevel = 1;
         // starts at 0 score
         score = 0;
 
@@ -144,16 +170,36 @@ class HomePanel extends JPanel
 {
     // MainPanel reference for using the card layout
     private MainPanel mainP;
+    // background image
+    private Image homeBackground;
 
     public HomePanel(MainPanel mainPIn)
     {
         mainP = mainPIn;
 
+        try
+        {
+            homeBackground = ImageIO.read(new File("assets/background.png"));
+        }
+        catch (IOException e)
+        {
+            // print error message
+            System.out.println("Unable to load images!");
+        }
+
         // use a flowlayout to position buttons and label in the center
-        setLayout(new FlowLayout(FlowLayout.CENTER, 0, 100));
+        setLayout(new FlowLayout(FlowLayout.CENTER, 0, 150));
 
         // add center panel containing the buttons and title text
         add(new CenterPanel());
+    }
+
+    // draw background image
+    public void paintComponent(Graphics g)
+    {
+        // paint the background
+        super.paintComponent(g);
+        g.drawImage(homeBackground, 0, 0, this);
     }
 
 
@@ -163,10 +209,7 @@ class HomePanel extends JPanel
         public CenterPanel()
         {
             // use a grid layout with 10px of vertical spacing
-            setLayout(new GridLayout(6, 1, 0, 10));
-
-            // welcome label
-            JLabel label = new JLabel("Welcome to Operators!");
+            setLayout(new GridLayout(5, 1, 0, 10));
 
             // new game button
             JButton newGame = new JButton("New Game");
@@ -194,13 +237,22 @@ class HomePanel extends JPanel
             quit.addActionListener(this);
 
 
-            // add label and buttons to FlowLayout
-            add(label);
+            // add buttons to FlowLayout
             add(newGame);
             add(instructions);
             add(highScore);
             add(reset);
             add(quit);
+
+            // use white background
+            setBackground(Color.GRAY);
+        }
+
+        // draw background image
+        public void paintComponent(Graphics g)
+        {
+            // paint the background
+            super.paintComponent(g);
         }
 
         // button clicked
@@ -244,8 +296,8 @@ class CompletePanel extends JPanel implements ActionListener
 
     public CompletePanel(MainPanel mainPIn)
     {
-    	setLayout(new FlowLayout(FlowLayout.CENTER, 400, 10));
-    	
+        setLayout(new FlowLayout(FlowLayout.CENTER, 400, 10));
+
         mainP = mainPIn;
         highScoreFile = new File("highScore.txt");
 
@@ -254,15 +306,15 @@ class CompletePanel extends JPanel implements ActionListener
         nameField = new JTextField(10);
         // use this class as an action listener
         nameField.addActionListener(new NameFieldHandler());
-        
+
         // text area to display high scores
         highScore = new JTextArea(10, 15);
         highScore.setEditable(false);
-        
+
         // exit button to go back to home screen
         JButton exit = new JButton("Exit");
         exit.addActionListener(this);
-        
+
         refresh();
 
         // add to flow layout
@@ -271,32 +323,34 @@ class CompletePanel extends JPanel implements ActionListener
         add(highScore);
         add(exit);
     }
-    
+
     class NameFieldHandler implements ActionListener
     {
-    	public NameFieldHandler() {}
+        public NameFieldHandler()
+        {}
 
-		public void actionPerformed(ActionEvent e) {
-			String text = e.getActionCommand();
-			
-			nameField.setEnabled(false);
-			
-			addPlayer(text + " - " + mainP.score);
-			refresh();
-		}
-    	
+        public void actionPerformed(ActionEvent e)
+        {
+            String text = e.getActionCommand();
+
+            nameField.setEnabled(false);
+
+            addPlayer(text + " - " + mainP.score);
+            refresh();
+        }
+
     }
-    
+
     // refresh the high score contents
     public void refresh()
     {
         // TODO: doesn't work on mac for some reason
-    	// set high score text to string (joined by newline) loaded from file
-    	//highScore.setText(String.join("\n", loadPlayers()));
-    	// congratulate user with however many points they got
-    	congrats.setText("Congratulations! You finished with " + mainP.score + " points. Enter your name");
-    	// refresh the home page's high score panel
-    	mainP.highScorePanel.refresh();
+        // set high score text to string (joined by newline) loaded from file
+        highScore.setText(String.join("\n", loadPlayers()));
+        // congratulate user with however many points they got
+        congrats.setText("Congratulations! You finished with " + mainP.score + " points. Enter your name");
+        // refresh the home page's high score panel
+        mainP.highScorePanel.refresh();
     }
 
     // button clicked
@@ -304,10 +358,10 @@ class CompletePanel extends JPanel implements ActionListener
     {
         // go back to home screen
         mainP.showCard("home");
-        
+
     }
 
-    
+
     // load player high/current score data from file
     public String[] loadPlayers()
     {
@@ -323,66 +377,68 @@ class CompletePanel extends JPanel implements ActionListener
             // read all the lines into allText
             while (highScoreScanner.hasNext())
                 allText += highScoreScanner.nextLine() + "\n";
-            
+
             highScoreScanner.close();
         }
         catch (FileNotFoundException e)
         {
             // tell the user if error
-            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
         }
-        
+
 
         return allText.split("\n");
     }
-    
-    
+
+
     // adds a player name and high score to the file
     public void addPlayer(String nameAndScore)
     {
-    	PrintWriter writer;
-    	String[] highScores = loadPlayers();
-    	// inserted score already, no need to do it again
-    	boolean inserted = false;
-    	
-    	try
-    	{
-    		writer = new PrintWriter(highScoreFile);
-    		
-    		// add nameAndScore to current high scores by inserting the score once less than the highest
-        	for (int i = 0; i < highScores.length; i++)
-        	{
-        		if (getScore(highScores[i]) < getScore(nameAndScore) && !inserted)
-        		{
-        			// write new score to file
-        			writer.println(nameAndScore);
-        			inserted = true;
-        		}
-        		
-        		// write score to file
-        		writer.println(highScores[i]);
-        	}
-        	
-        	// write at the end if not written yet
-        	if (!inserted)
-        	{
-    			writer.println(nameAndScore);
-        	}
-        	
-        	writer.close();
-    	} catch (IOException e) {
+        PrintWriter writer;
+        String[] highScores = loadPlayers();
+        // inserted score already, no need to do it again
+        boolean inserted = false;
+
+        try
+        {
+            writer = new PrintWriter(highScoreFile);
+
+            // add nameAndScore to current high scores by inserting the score once less than the highest
+            for (int i = 0; i < highScores.length; i++)
+            {
+                if (getScore(highScores[i]) < getScore(nameAndScore) && !inserted)
+                {
+                    // write new score to file
+                    writer.println(nameAndScore);
+                    inserted = true;
+                }
+
+                // write score to file
+                writer.println(highScores[i]);
+            }
+
+            // write at the end if not written yet
+            if (!inserted)
+            {
+                writer.println(nameAndScore);
+            }
+
+            writer.close();
+        }
+        catch (IOException e)
+        {
             // tell the user if error
-            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to write to\n\n\n");
-		}
+            System.out.println("\n\nERROR: Cannot find/open highScore.txt file to write to\n\n\n");
+        }
     }
-    
+
     // get the score (an integer) from the name and score string ("bob - 3000")
     public int getScore(String nameAndScore)
     {
-    	int split = nameAndScore.indexOf(" - ") + 3;
-    	String substring = nameAndScore.substring(split, nameAndScore.length()); 
-    	
-    	return Integer.parseInt(substring);
+        int split = nameAndScore.indexOf(" - ") + 3;
+        String substring = nameAndScore.substring(split, nameAndScore.length());
+
+        return Integer.parseInt(substring);
     }
 }
 
@@ -449,7 +505,7 @@ class InstructionPanel extends JPanel implements ActionListener
             "    1. parenthesis ()\n" +
             "    2. exponents ^\n" +
             "    3. multiplication and division *, /\n" +
-            "    4. addition and subtraction +, -\n" + 
+            "    4. addition and subtraction +, -\n" +
             "An easy way to remember the order of operations is by remembering PEMDAS\n\n" +
             "For levels 1-10, calculate the correct answer by clicking on the\noperations (+, -, *, or /) in order\n" +
             "For levels 11-20, drag operations from the black boxes to the blue boxes\n" +
@@ -633,7 +689,7 @@ class HighScorePanel extends JPanel implements ActionListener
 
         // border layout for the button
         setLayout(new BorderLayout(20, 20));
-        
+
         // make high score text area with allText
         textArea = new JTextArea("", 20, 4);
         textArea.setFont(mainP.arial);
@@ -645,7 +701,7 @@ class HighScorePanel extends JPanel implements ActionListener
         back.addActionListener(this);
 
         refresh();
-        
+
         // add to border layout
         add(back, BorderLayout.NORTH);
         add(textArea, BorderLayout.CENTER);
@@ -661,10 +717,11 @@ class HighScorePanel extends JPanel implements ActionListener
         if (cmd.equals("Back"))
             mainP.showCard("home");
     }
-    
+
     // refresh high scores by loading them from the file
-    public void refresh() {
-    	// load file with high score data
+    public void refresh()
+    {
+        // load file with high score data
         File highScoreFile = new File("highScore.txt");
         Scanner highScoreScanner;
         // the text in the high score file
@@ -678,13 +735,13 @@ class HighScorePanel extends JPanel implements ActionListener
             // read all the lines into allText
             while (highScoreScanner.hasNext())
                 allText += highScoreScanner.nextLine() + "\n";
-            
+
             textArea.setText(allText);
         }
         catch (FileNotFoundException e)
         {
             // tell the user if error
-            System.err.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open highScore.txt file to read\n\n\n");
         }
     }
 }
@@ -705,6 +762,7 @@ class GamePanel extends JPanel
     // questions for levels 11 to 20
     // first 4 second-layer elements are the question, last element is the expected result
     private int[][] opQuestions;
+
     // player image
     private Image player;
     // enemy image
@@ -717,6 +775,7 @@ class GamePanel extends JPanel
     private Image fireball;
     // fire image for when enmy dies
     private Image fire;
+
     // health of the enemy. starts out as the number of operators
     private int enemyHealth;
     // max health the enemy can have. starts out as the number of operators
@@ -732,9 +791,7 @@ class GamePanel extends JPanel
         try
         {
             player = ImageIO.read(new File("assets/person1.png"));
-            //            player = new ImageIcon("assets/person1.gif").getImage();
             enemy = new ImageIcon("assets/monster.gif").getImage();
-            //            enemy = ImageIO.read(new File("assets/monster.png"));
             healthImage = ImageIO.read(new File("assets/hearts.png"));
             arrow = ImageIO.read(new File("assets/arrow.png"));
             fireball = new ImageIcon("assets/fireball.gif").getImage();
@@ -743,11 +800,12 @@ class GamePanel extends JPanel
         catch (IOException e)
         {
             // print error message
-            e.printStackTrace();
+            System.out.println("Unable to load images!");
         }
 
         // NOTE: questions must have space between operators and on the outside of parenthesis
-        // questions must not contain 3 digit numbers
+        // questions must NOT have nested parenthesis
+        // questions must contain 1 or 2 digit numbers only
         // questions.txt must contain 10 lines of the above questions
         // it must also contain 10 lines of fill in the operator questions
         // 4 numbers are separated by commas and the expected answer is also separated by a comma
@@ -782,7 +840,7 @@ class GamePanel extends JPanel
         }
         catch (FileNotFoundException e)
         {
-            System.err.println("\n\nERROR: Cannot find/open questions.txt file to read\n\n\n");
+            System.out.println("\n\nERROR: Cannot find/open questions.txt file to read\n\n\n");
         }
 
         health = 1;
@@ -828,7 +886,7 @@ class GamePanel extends JPanel
         }
         catch (ScriptException e)
         {
-            System.err.println(question + " is badly formatted!");
+            System.out.println(question + " is badly formatted!");
             // error return
             return 1000000;
         }
@@ -916,13 +974,14 @@ class GamePanel extends JPanel
                         g.fillRect(i * 25, 0, 23, 25);
                         // color for number
                         g.setColor(Color.WHITE);
-                    } else
+                    }
+                    else
                     {
                         // color for number
                         g.setColor(Color.BLACK);
                     }
                     // draw number for the level
-                    g.drawString(i+1+"", i*25+5, 15);
+                    g.drawString(i + 1 + "", i * 25 + 5, 15);
                 }
 
                 // draw the score
@@ -1224,7 +1283,7 @@ class GamePanel extends JPanel
                         fireballFrame = 240;
 
                         // show next level button if user completed the level (no more operators)
-                        if (question.length() <= 2)
+                        if (question.length() <= 3)
                         {
                             // calculate score (cannot be negative)
                             points = (int) Math.max(0, health * 100) * 10;
@@ -1343,7 +1402,8 @@ class GamePanel extends JPanel
         public void mouseExited(MouseEvent e)
         {}
 
-        public void mouseDragged(MouseEvent e) {}
+        public void mouseDragged(MouseEvent e)
+        {}
         public void mouseMoved(MouseEvent e)
         {
             // mouse x and y positions
@@ -1367,7 +1427,7 @@ class GamePanel extends JPanel
             // addition/subtraction only if no multiply/divide
             if (str.indexOf("*") == -1 && str.indexOf("/") == -1)
             {
-                if (str.indexOf("-") == -1)
+                if (str.indexOf("-") <= 0)
                 {
                     // add
                     if (index == str.indexOf("+")) correctOp(op, index, str, offset);
@@ -1443,8 +1503,8 @@ class GamePanel extends JPanel
             // go back to find start
             for (int i = index - 2; i >= 0 && !exit; i--)
             {
-                // look for anything besides a number or decimal point
-                if (".0123456789".indexOf(str.charAt(i)) == -1)
+                // look for anything besides a number or decimal point or negative sign
+                if (".0123456789-".indexOf(str.charAt(i)) == -1)
                 {
                     start = i + 1;
                     exit = true;
@@ -1457,7 +1517,7 @@ class GamePanel extends JPanel
             for (int i = index + 2; i < str.length() && !exit; i++)
             {
                 // look for anything besides a number or decimal point
-                if (".0123456789".indexOf(str.charAt(i)) == -1)
+                if (".0123456789-".indexOf(str.charAt(i)) == -1)
                 {
                     end = i;
                     exit = true;
@@ -1593,7 +1653,10 @@ class GamePanel extends JPanel
         public void reset()
         {
             // currect question the user is solving
-            question = Arrays.copyOfRange(opQuestions[mainP.level - 11], 0, 4);
+            question = new int[]
+            {
+                opQuestions[mainP.level - 11][0], opQuestions[mainP.level - 11][1], opQuestions[mainP.level - 11][2], opQuestions[mainP.level - 11][3]
+            };
 
             answer = opQuestions[mainP.level - 11][4];
 
@@ -1606,10 +1669,10 @@ class GamePanel extends JPanel
             curAnswer = 0;
 
             nextBtn.setVisible(false);
-            
+
             if (mainP.level == questions.length + opQuestions.length)
             {
-            	nextBtn.setText("Finish game!");
+                nextBtn.setText("Finish game!");
             }
 
             maxEnemyHealth = 1;
@@ -1648,7 +1711,7 @@ class GamePanel extends JPanel
             g.drawString(answer + "", 550, 70);
 
             // draw equal sign and user's answer, truncated to 3rd decimal place
-            g.drawString("= " + Math.round(curAnswer*1000)/1000.0, 500, 120);
+            g.drawString("= " + Math.round(curAnswer * 1000) / 1000.0, 500, 120);
 
             // draw source operators
             for (int i = 0; i < sourceOps.length; i++)
@@ -1736,16 +1799,17 @@ class GamePanel extends JPanel
         {
             // go the next level
             mainP.level++;
-            
+
             // if finished with game, show complete game panel for high score
             if (mainP.level > questions.length + opQuestions.length)
             {
-            	mainP.showCard("complete");
-            	mainP.completePanel.refresh();
-            } else
+                mainP.showCard("complete");
+                mainP.completePanel.refresh();
+            }
+            else
             {
-	            // repaint gamePanel
-	            refreshAll();
+                // repaint gamePanel
+                refreshAll();
             }
         }
 
@@ -1836,10 +1900,16 @@ class GamePanel extends JPanel
                 {
                     // hit enemy
                     fireballFrame = 240;
-                    repaint();
 
                     // calculate score (cannot be negative)
                     points = (int) Math.max(0, health * 100) * 10;
+
+                    // show next button
+                    nextBtn.setVisible(true);
+                    // hide instructions
+                    drawInstructions = false;
+
+                    repaint();
 
                     // only add to score if this is their first time playing level
                     if (mainP.level == mainP.nextLevel)
@@ -1847,13 +1917,9 @@ class GamePanel extends JPanel
                         mainP.score += points;
                         // unlock next level
                         mainP.nextLevel++;
-
-                        // refresh padlock icons
-                        refreshAll();
                     }
-
-                    nextBtn.setVisible(true);
-                } else
+                }
+                else
                 {
                     // user got incorrect, health decrease
                     arrowFrame = 200;

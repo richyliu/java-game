@@ -1,7 +1,6 @@
-me - 2000
-richard - 2000
-ur mum - 2000
-richard - 1400
-john - 200
-rich - -10
-bobarist - 0
+John - 5000
+Bob - 2320
+Brandon - 2200
+Richard - 2000
+Smith - 1200
+Alex - 1000

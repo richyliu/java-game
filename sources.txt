@@ -1,16 +1,3 @@
-https://pixabay.com/en/transparent-background-monster-myth-1273346/
-https://www.shutterstock.com/video/clip-23326495-stock-footage-a-man-in-a-dark-suit-start-and-stop-walking-animation-looped-footage-with-transparent-background.html
-https://www.shutterstock.com/video/clip-23326570-stock-footage-a-man-in-a-dark-suit-walking-animation-looped-footage-with-transparent-background-png-alpha.html
-https://www.videoblocks.com/video/funny-man-in-shirt-and-red-tie---walk-animation-looped-footage-with-transparent-background-pngalpha-s1wwv87dgiy9xopvg
-https://openclipart.org/detail/196149/fireball
-https://pixabay.com/en/pixel-heart-heart-pixel-symbol-red-2779422/
-http://pngbox.blogspot.com/2013/08/arrow-transparent-background.html
-http://www.pngmart.com/image/2936
-https://gifer.com/en/ZXHC
-https://gamejolt.com/games/axeplode/172864/devlog/new-pixel-art-and-animations-tsnu2bdu
-
 https://stackoverflow.com/questions/20165698/java-how-to-draw-a-border-around-an-undecorated-jframe
 https://stackoverflow.com/questions/22240328/how-to-draw-a-gif-animation-in-java
-https://stackoverflow.com/questions/4801386/how-do-i-add-an-image-to-a-jbutton
 https://stackoverflow.com/questions/1978933/a-quick-and-easy-way-to-join-array-elements-with-a-separator-the-opposite-of-sp
-https://stackoverflow.com/questions/11496700/how-to-use-printwriter-and-file-classes-in-java
