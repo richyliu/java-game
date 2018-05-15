@@ -1,18 +1,18 @@
-/**
+﻿/**
  * Richard Liu
  * 4/9/18
  * Main.java
  * Operators game
  * 
  * General overview:
- * The user starts off on the home panel. From there they can view the levels panel, high score, instructions, or reset.
- * High score panel allows them to view the past high scores. The instructions panel tells the user what to do on the
- * levels. The user can also reset the score if they choose to do so. From the levels panel they can select different
- * levels (currently out of 20, but easily changeable). The first 10 are easy levels; the user only has to click on
- * operators in the correct order to solve the problem. They are represented by an player which shoots fireballs to
- * destroy the enemy. In the last 10 levels, the user has to drag operators to the correct location in order to make
- * the desired level. They lose health according to the number of times the tried. Once they finished all 20 levels,
- * they can enter in their score into the high score file.
+ * The user starts off on the home panel. From there they can view the levels panel, high score, instructions,
+ * or reset. High score panel allows them to view the past high scores. The instructions panel tells the user
+ * what to do on the levels. The user can also reset the score if they choose to do so. From the levels panel
+ * they can select different levels (currently out of 20, but easily changeable). The first 10 are easy levels;
+ * the user only has to click on operators in the correct order to solve the problem. They are represented by
+ * an player which shoots fireballs to destroy the enemy. In the last 10 levels, the user has to drag operators
+ * to the correct location in order to make the desired level. They lose health according to the number of
+ * times the tried. Once they finished all 20 levels, they can enter in their score into the high score file.
  */
 
 
@@ -135,8 +135,7 @@ class MainPanel extends JPanel
         // user starts on level 1
         level = 1;
         // only level 1 is unlocked
-        // TODO: change this
-        nextLevel = 20;
+        nextLevel = 1;
         // starts at 0 score
         score = 0;
 
@@ -155,7 +154,6 @@ class MainPanel extends JPanel
         add(completePanel, "complete");
         add(gamePanel, "game");
     }
-
 
     // go to the a certain card, called by other classes within this class
     public void showCard(String name)
@@ -202,7 +200,6 @@ class HomePanel extends JPanel
         g.drawImage(homeBackground, 0, 0, this);
     }
 
-
     // contains the buttons and label and is positioned in the center of homepanel
     class CenterPanel extends JPanel implements ActionListener
     {
@@ -235,7 +232,6 @@ class HomePanel extends JPanel
             JButton quit = new JButton("Quit");
             // use this class as an action listener
             quit.addActionListener(this);
-
 
             // add buttons to FlowLayout
             add(newGame);
@@ -302,7 +298,8 @@ class CompletePanel extends JPanel implements ActionListener
         highScoreFile = new File("assets/highScore.txt");
 
         // create label and name input
-        congrats = new JLabel("Congratulations! You finished with " + mainP.score + " points. Enter your name", JLabel.CENTER);
+        congrats = new JLabel("Congratulations! You finished with " + mainP.score +
+                " points. Enter your name", JLabel.CENTER);
         nameField = new JTextField(10);
         // use this class as an action listener
         nameField.addActionListener(new NameFieldHandler());
@@ -324,18 +321,24 @@ class CompletePanel extends JPanel implements ActionListener
         add(exit);
     }
 
+    // for getting input from the name field
     class NameFieldHandler implements ActionListener
     {
         public NameFieldHandler()
         {}
 
+        // called when enter is pressed in the name field
         public void actionPerformed(ActionEvent e)
         {
+            // get the text in the text field
             String text = e.getActionCommand();
 
+            // prevent the user from changing their name
             nameField.setEnabled(false);
 
+            // add a player to the file based on their score
             addPlayer(text + " - " + mainP.score);
+            // refresh so user can see their name on the high score leaderboard
             refresh();
         }
 
@@ -367,7 +370,6 @@ class CompletePanel extends JPanel implements ActionListener
 
     }
 
-
     // load player high/current score data from file
     public String[] loadPlayers()
     {
@@ -395,7 +397,6 @@ class CompletePanel extends JPanel implements ActionListener
 
         return allText.split("\n");
     }
-
 
     // adds a player name and high score to the file
     public void addPlayer(String nameAndScore)
@@ -425,9 +426,7 @@ class CompletePanel extends JPanel implements ActionListener
 
             // write at the end if not written yet
             if (!inserted)
-            {
                 writer.println(nameAndScore);
-            }
 
             writer.close();
         }
@@ -447,6 +446,7 @@ class CompletePanel extends JPanel implements ActionListener
         return Integer.parseInt(substring);
     }
 }
+
 
 // reset panel allows the user to confirm resetting the score
 class ResetPanel extends JPanel implements ActionListener
@@ -573,7 +573,6 @@ class LevelsPanel extends JPanel implements ActionListener
         // add back button, which uses this class as an action listener
         JButton back = new JButton("Back");
         back.addActionListener(this);
-
         add(back, BorderLayout.NORTH);
 
         gridPanel = new GridPanel();
@@ -591,7 +590,6 @@ class LevelsPanel extends JPanel implements ActionListener
         if (cmd.equals("Back"))
             mainP.showCard("home");
     }
-
 
     // contains the actual level selection (#1, #2, #3, etc)
     class GridPanel extends JPanel implements ActionListener
@@ -657,7 +655,6 @@ class LevelsPanel extends JPanel implements ActionListener
             }
         }
     }
-
 
     // pad lock icon that is drawn on top of the button
     class PadlockIcon implements Icon
@@ -954,7 +951,6 @@ class GamePanel extends JPanel
                 gameCards.show(centerPanel, "pause");
         }
 
-
         // progress bar, so user can see how much of the game they've completed
         class ProgressBarPanel extends JPanel
         {
@@ -1077,7 +1073,6 @@ class GamePanel extends JPanel
 
     // game view for levels 1-10
     class EarlyLevelPanel extends JPanel implements KeyListener, ActionListener, MouseListener, MouseMotionListener
-
     {
         // main panel reference
         private MainPanel mainP;
@@ -1183,7 +1178,8 @@ class GamePanel extends JPanel
                 g.fillRect(523, 253, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
 
             // draw player health bar
-            g.drawImage(healthImage, 140, 230, 140 + (int)(health * 90), 260, 0, 0, (int)(health * 450), 150, this);
+            g.drawImage(healthImage, 140, 230, 140 + (int)(health * 90), 260, 0, 0,
+                    (int)(health * 450), 150, this);
 
             // draw fireball
             if (fireballFrame > -1)
@@ -1207,7 +1203,6 @@ class GamePanel extends JPanel
             if (arrowFrame > -1)
             {
                 arrowFrame -= 30;
-
                 g.drawImage(arrow, 210 + arrowFrame, 300, 160, 20, this);
             }
 
@@ -1425,7 +1420,8 @@ class GamePanel extends JPanel
             int index = (x - 50) / 24;
 
             // player clicked on a character within the string and is a valid operator
-            if (y > 45 && y < 70 && index >= 0 && index < question.length() && "+-/*".indexOf(question.charAt(index)) >= 0)
+            if (y > 45 && y < 70 && index >= 0 && index < question.length() &&
+                    "+-/*".indexOf(question.charAt(index)) >= 0)
                 hoverPos = index;
             else
                 hoverPos = -1;
@@ -1498,7 +1494,6 @@ class GamePanel extends JPanel
                 arrowFrame = 200;
             }
         }
-
 
         // calculate the correct answer for this operator at index and draw onscreen
         public void correctOp(char op, int index, String str, int offset)
@@ -1590,6 +1585,7 @@ class GamePanel extends JPanel
         }
     }
 
+
     // game view for levels 11-20
     class LateLevelPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener
     {
@@ -1667,11 +1663,16 @@ class GamePanel extends JPanel
             // currect question the user is solving
             question = new int[]
             {
-                opQuestions[mainP.level - 11][0], opQuestions[mainP.level - 11][1], opQuestions[mainP.level - 11][2], opQuestions[mainP.level - 11][3]
+                opQuestions[mainP.level - 11][0],
+                opQuestions[mainP.level - 11][1],
+                opQuestions[mainP.level - 11][2],
+                opQuestions[mainP.level - 11][3]
             };
 
+            // get the expected answer
             answer = opQuestions[mainP.level - 11][4];
 
+            // reset operators
             operators = new char[]
             {
                 ' ',
@@ -1682,6 +1683,7 @@ class GamePanel extends JPanel
 
             nextBtn.setVisible(false);
 
+            // change button from "next level" to "finish game" once user is on the last level
             if (mainP.level == questions.length + opQuestions.length)
             {
                 nextBtn.setText("Finish game!");
@@ -1694,7 +1696,6 @@ class GamePanel extends JPanel
             fireballFrame = -1;
             arrowFrame = -1;
         }
-
 
         public void paintComponent(Graphics g)
         {
@@ -1748,9 +1749,8 @@ class GamePanel extends JPanel
 
             // draw instructions
             if (drawInstructions)
-            {
-                g.drawString("Draw an operator from the black box to the blue box to make current match expected answer", 50, 250);
-            }
+                g.drawString("Draw an operator from the black box to the blue box " +
+                        "to make current match expected answer", 50, 250);
 
 
             // draw player and enemy
@@ -1766,7 +1766,8 @@ class GamePanel extends JPanel
                 g.fillRect(523, 303, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
 
             // draw player health bar
-            g.drawImage(healthImage, 140, 280, 140 + (int)(health * 90), 310, 0, 0, (int)(health * 450), 150, this);
+            g.drawImage(healthImage, 140, 280, 140 + (int)(health*90), 310, 0, 0,
+                    (int)(health*450), 150, this);
 
             // draw fireball
             if (fireballFrame > -1)
