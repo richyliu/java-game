@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Richard Liu
  * 4/9/18
  * Main.java
@@ -288,6 +288,8 @@ class CompletePanel extends JPanel implements ActionListener
     private JTextField nameField;
     // to display high score
     private JTextArea highScore;
+    // exit button
+    private JButton exit;
     private File highScoreFile;
 
     public CompletePanel(MainPanel mainPIn)
@@ -299,7 +301,7 @@ class CompletePanel extends JPanel implements ActionListener
 
         // create label and name input
         congrats = new JLabel("Congratulations! You finished with " + mainP.score +
-                " points. Enter your name", JLabel.CENTER);
+            " points. Enter your name", JLabel.CENTER);
         nameField = new JTextField(10);
         // use this class as an action listener
         nameField.addActionListener(new NameFieldHandler());
@@ -309,8 +311,9 @@ class CompletePanel extends JPanel implements ActionListener
         highScore.setEditable(false);
 
         // exit button to go back to home screen
-        JButton exit = new JButton("Exit");
+        exit = new JButton("Exit");
         exit.addActionListener(this);
+        exit.setVisible(false);
 
         refresh();
 
@@ -335,6 +338,9 @@ class CompletePanel extends JPanel implements ActionListener
 
             // prevent the user from changing their name
             nameField.setEnabled(false);
+
+            // show the exit button to allow the user to go back to the home screen
+            exit.setVisible(true);
 
             // add a player to the file based on their score
             addPlayer(text + " - " + mainP.score);
@@ -1179,7 +1185,7 @@ class GamePanel extends JPanel
 
             // draw player health bar
             g.drawImage(healthImage, 140, 230, 140 + (int)(health * 90), 260, 0, 0,
-                    (int)(health * 450), 150, this);
+                (int)(health * 450), 150, this);
 
             // draw fireball
             if (fireballFrame > -1)
@@ -1421,7 +1427,7 @@ class GamePanel extends JPanel
 
             // player clicked on a character within the string and is a valid operator
             if (y > 45 && y < 70 && index >= 0 && index < question.length() &&
-                    "+-/*".indexOf(question.charAt(index)) >= 0)
+                "+-/*".indexOf(question.charAt(index)) >= 0)
                 hoverPos = index;
             else
                 hoverPos = -1;
@@ -1664,9 +1670,9 @@ class GamePanel extends JPanel
             question = new int[]
             {
                 opQuestions[mainP.level - 11][0],
-                opQuestions[mainP.level - 11][1],
-                opQuestions[mainP.level - 11][2],
-                opQuestions[mainP.level - 11][3]
+                    opQuestions[mainP.level - 11][1],
+                    opQuestions[mainP.level - 11][2],
+                    opQuestions[mainP.level - 11][3]
             };
 
             // get the expected answer
@@ -1750,7 +1756,7 @@ class GamePanel extends JPanel
             // draw instructions
             if (drawInstructions)
                 g.drawString("Draw an operator from the black box to the blue box " +
-                        "to make current match expected answer", 50, 250);
+                    "to make current match expected answer", 50, 250);
 
 
             // draw player and enemy
@@ -1766,8 +1772,8 @@ class GamePanel extends JPanel
                 g.fillRect(523, 303, (int)(enemyHealth / (double) maxEnemyHealth * 100), 20);
 
             // draw player health bar
-            g.drawImage(healthImage, 140, 280, 140 + (int)(health*90), 310, 0, 0,
-                    (int)(health*450), 150, this);
+            g.drawImage(healthImage, 140, 280, 140 + (int)(health * 90), 310, 0, 0,
+                (int)(health * 450), 150, this);
 
             // draw fireball
             if (fireballFrame > -1)

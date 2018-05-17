@@ -1,6 +1,5 @@
+JT5161512 - 19910
+Richard - 16720
 John - 5000
 Bob - 2320
-Brandon - 2200
-Richard - 2000
 Smith - 1200
-Alex - 1000

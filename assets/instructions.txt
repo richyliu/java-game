@@ -5,6 +5,5 @@ The order of operations are:
     4. addition and subtraction +, -
 An easy way to remember the order of operations is by remembering PEMDAS
 For levels 1-10, calculate the correct answer by clicking on the
-operations (+, -, *, or /) in order
-For levels 11-20, drag operations from the black boxes to the blue boxes
+operations (+, -, *, or /) in orderFor levels 11-20, drag operations from the black boxes to the blue boxes
 to make the "current answer" match "expected answer"
